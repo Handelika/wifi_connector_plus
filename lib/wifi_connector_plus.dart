@@ -57,7 +57,8 @@ class WifiConnectorPlus {
       final hasLocationPermission = await Permission.location.isGranted;
       if (!hasLocationPermission) {
         return WifiConnectResult.failure(
-          message: 'Location permission (ACCESS_FINE_LOCATION) is required to connect to Wi-Fi.',
+          message:
+              'Location permission (ACCESS_FINE_LOCATION) is required to connect to Wi-Fi.',
           error: WifiConnectError.permissionDenied,
         );
       }

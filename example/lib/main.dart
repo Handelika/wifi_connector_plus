@@ -7,11 +7,13 @@ import 'package:wifi_connector_plus/wifi_connector_plus.dart';
 void main() {
   // Ensure status bar style matches our dark design
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -94,7 +96,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       );
       if (!granted) {
         setState(() {
-          _statusMessage = 'Location permission is required for Wi-Fi connection.';
+          _statusMessage =
+              'Location permission is required for Wi-Fi connection.';
         });
       }
     } catch (e, stackTrace) {
@@ -223,11 +226,15 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       builder: (BuildContext context) {
         return _buildModernDialog(
           title: 'Camera Permission Required',
-          content: 'Camera permission is required to scan QR codes. '
+          content:
+              'Camera permission is required to scan QR codes. '
               'Please open application settings and grant camera access.',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Color(0xFF94A3B8)),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
@@ -235,7 +242,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 backgroundColor: const Color(0xFF00F2FE),
                 foregroundColor: const Color(0xFF0F172A),
               ),
-              child: const Text('Open Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Open Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
@@ -253,13 +263,18 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       context: context,
       builder: (BuildContext context) {
         return _buildModernDialog(
-          title: isPreciseRequired ? 'Precise Location Required' : 'Location Permission Required',
+          title: isPreciseRequired
+              ? 'Precise Location Required'
+              : 'Location Permission Required',
           content: isPreciseRequired
               ? 'Precise location permission (ACCESS_FINE_LOCATION) is required on Android to verify and connect to Wi-Fi networks. Please open settings and ensure location access is set to "Precise" (or enabled).'
               : 'Location permission is required on Android to detect and connect to Wi-Fi networks. Please open application settings and grant location access.',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Color(0xFF94A3B8)),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
@@ -267,7 +282,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 backgroundColor: const Color(0xFF00F2FE),
                 foregroundColor: const Color(0xFF0F172A),
               ),
-              child: const Text('Open Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Open Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
@@ -322,7 +340,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     final hasLocationPermission = await _checkAndRequestLocationPermission();
     if (!hasLocationPermission) {
       setState(() {
-        _statusMessage = 'Location permission is required to connect on Android.';
+        _statusMessage =
+            'Location permission is required to connect on Android.';
       });
       return;
     }
@@ -346,7 +365,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _statusMessage = result.message;
       });
 
-      if (!result.isSuccess && result.error == WifiConnectError.permissionDenied) {
+      if (!result.isSuccess &&
+          result.error == WifiConnectError.permissionDenied) {
         _showLocationSettingsDialog(isPreciseRequired: true);
       }
     } catch (e, stackTrace) {
@@ -434,7 +454,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            _buildCustomSnackBar('Loaded scanned credentials for "${credentials.ssid}"'),
+            _buildCustomSnackBar(
+              'Loaded scanned credentials for "${credentials.ssid}"',
+            ),
           );
         } else {
           developer.log(
@@ -465,16 +487,23 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       builder: (BuildContext context) {
         return _buildModernDialog(
           title: 'Wi-Fi QR Scanned',
-          content: 'SSID: ${credentials.ssid}\n'
+          content:
+              'SSID: ${credentials.ssid}\n'
               'Security: ${credentials.securityType.name.toUpperCase()}\n\n'
               'Do you want to connect to this Wi-Fi network now?',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Color(0xFF94A3B8)),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: const Text('Fill Fields Only', style: TextStyle(color: Color(0xFF00F2FE))),
+              child: const Text(
+                'Fill Fields Only',
+                style: TextStyle(color: Color(0xFF00F2FE)),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -484,7 +513,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                   _isHidden = credentials.isHidden;
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
-                  _buildCustomSnackBar('Loaded scanned credentials for "${credentials.ssid}"'),
+                  _buildCustomSnackBar(
+                    'Loaded scanned credentials for "${credentials.ssid}"',
+                  ),
                 );
               },
             ),
@@ -493,7 +524,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 backgroundColor: const Color(0xFF00F2FE),
                 foregroundColor: const Color(0xFF0F172A),
               ),
-              child: const Text('Connect Now', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Connect Now',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 _connectWithScannedCredentials(credentials);
@@ -539,9 +573,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _securityType = _parsedCredentials!.securityType;
         _isHidden = _parsedCredentials!.isHidden;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        _buildCustomSnackBar('Copied QR details to manual form'),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(_buildCustomSnackBar('Copied QR details to manual form'));
     }
   }
 
@@ -549,7 +583,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
 
   SnackBar _buildCustomSnackBar(String message, {bool isError = false}) {
     return SnackBar(
-      backgroundColor: isError ? const Color(0xFFE94057) : const Color(0xFF1E293B),
+      backgroundColor: isError
+          ? const Color(0xFFE94057)
+          : const Color(0xFF1E293B),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       content: Row(
@@ -627,9 +663,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFF334155)),
-                ),
+                border: Border(bottom: BorderSide(color: Color(0xFF334155))),
               ),
               child: Row(
                 children: [
@@ -666,12 +700,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     bool isSecondary = false,
   }) {
     final gradient = isSecondary
-        ? const LinearGradient(
-            colors: [Color(0xFF8A2387), Color(0xFFE94057)],
-          )
-        : const LinearGradient(
-            colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)],
-          );
+        ? const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)])
+        : const LinearGradient(colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)]);
 
     return Container(
       height: 52,
@@ -702,14 +732,18 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
               children: [
                 Icon(
                   icon,
-                  color: onPressed == null ? const Color(0xFF64748B) : Colors.white,
+                  color: onPressed == null
+                      ? const Color(0xFF64748B)
+                      : Colors.white,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
                 Text(
                   label,
                   style: TextStyle(
-                    color: onPressed == null ? const Color(0xFF64748B) : Colors.white,
+                    color: onPressed == null
+                        ? const Color(0xFF64748B)
+                        : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -832,11 +866,17 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                           width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00F2FE)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF00F2FE),
+                            ),
                           ),
                         )
                       else
-                        Icon(statusIcon, color: statusTextGradientColor, size: 28),
+                        Icon(
+                          statusIcon,
+                          color: statusTextGradientColor,
+                          size: 28,
+                        ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -891,7 +931,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       onTap: !_isConnecting ? _requestAndScanQr : null,
                       borderRadius: BorderRadius.circular(20),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 24,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -957,7 +1000,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                             _buildInfoRow('SSID:', _parsedCredentials!.ssid),
                             _buildInfoRow(
                               'Security:',
-                              _parsedCredentials!.securityType.name.toUpperCase(),
+                              _parsedCredentials!.securityType.name
+                                  .toUpperCase(),
                             ),
                             _buildInfoRow(
                               'Password:',
@@ -981,11 +1025,18 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                         ),
                         child: const Row(
                           children: [
-                            Icon(Icons.error_outline, color: Color(0xFFF87171), size: 20),
+                            Icon(
+                              Icons.error_outline,
+                              color: Color(0xFFF87171),
+                              size: 20,
+                            ),
                             SizedBox(width: 10),
                             Text(
                               'Invalid Wi-Fi QR format detected',
-                              style: TextStyle(color: Color(0xFFF87171), fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Color(0xFFF87171),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -995,7 +1046,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                     SwitchListTile(
                       title: const Text(
                         'Autofill manual connection fields on scan',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF94A3B8),
+                        ),
                       ),
                       value: _fillFieldsOnScan,
                       activeThumbColor: const Color(0xFF00F2FE),
@@ -1012,7 +1066,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       children: [
                         Expanded(
                           child: _buildGradientButton(
-                            onPressed: _parsedCredentials != null && !_isConnecting
+                            onPressed:
+                                _parsedCredentials != null && !_isConnecting
                                 ? _connectWithQr
                                 : null,
                             icon: Icons.bolt,
@@ -1027,11 +1082,16 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFF0F172A),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFF334155)),
+                              border: Border.all(
+                                color: const Color(0xFF334155),
+                              ),
                             ),
                             child: IconButton(
                               onPressed: _fillManualFromParsed,
-                              icon: const Icon(Icons.copy, color: Color(0xFF00F2FE)),
+                              icon: const Icon(
+                                Icons.copy,
+                                color: Color(0xFF00F2FE),
+                              ),
                               tooltip: 'Copy details to Manual Connection form',
                             ),
                           ),
@@ -1048,7 +1108,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                   children: [
                     TextField(
                       controller: _ssidController,
-                      decoration: _buildInputDecoration(labelText: 'SSID (Network Name)'),
+                      decoration: _buildInputDecoration(
+                        labelText: 'SSID (Network Name)',
+                      ),
                       style: const TextStyle(color: Colors.white),
                     ),
                     const SizedBox(height: 16),
@@ -1059,7 +1121,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                         labelText: 'Password',
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: const Color(0xFF94A3B8),
                           ),
                           onPressed: () {
@@ -1075,8 +1139,13 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                     DropdownButtonFormField<WifiSecurityType>(
                       initialValue: _securityType,
                       dropdownColor: const Color(0xFF1E293B),
-                      decoration: _buildInputDecoration(labelText: 'Security Type'),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Security Type',
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                       items: WifiSecurityType.values.map((type) {
                         return DropdownMenuItem(
                           value: type,
@@ -1095,7 +1164,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                     SwitchListTile(
                       title: const Text(
                         'Is Hidden Network?',
-                        style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF94A3B8),
+                        ),
                       ),
                       value: _isHidden,
                       activeThumbColor: const Color(0xFF00F2FE),
@@ -1131,13 +1203,19 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         children: [
           Text(
             label,
-            style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
