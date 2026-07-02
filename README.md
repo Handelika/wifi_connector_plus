@@ -1,7 +1,7 @@
 # wifi_connector_plus
 
 [![pub package](https://img.shields.io/pub/v/wifi_connector_plus.svg)](https://pub.dev/packages/wifi_connector_plus)
-[![pub license](https://img.shields.io/pub/l/wifi_connector_plus.svg)](https://pub.dev/packages/wifi_connector_plus)
+[![pub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 
 Current stable release: `0.0.1`
