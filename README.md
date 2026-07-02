@@ -9,7 +9,7 @@ Current stable release: `0.0.2`
 A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings, and connect directly to Wi-Fi networks.
 
 <p align="center">
-  <img src="assets/modern_view_mockup.png" width="300" alt="Modern View Mockup">
+  <img src="https://raw.githubusercontent.com/Handelika/wifi_connector_plus/main/assets/modern_view_mockup.png" width="300" alt="Modern View Mockup">
 </p>
 
 > [!IMPORTANT]
