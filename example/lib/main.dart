@@ -1,9 +1,17 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wifi_connector_plus/wifi_connector_plus.dart';
 
 void main() {
+  // Ensure status bar style matches our dark design
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  ));
   runApp(const MyApp());
 }
 
@@ -14,9 +22,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Wi-Fi Connector Plus',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F172A), // Slate 900
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF00F2FE), // Cyan
+          secondary: Color(0xFF4FACFE), // Teal/Blue
+          surface: Color(0xFF1E293B), // Slate 800
+          onSurface: Color(0xFFF8FAFC), // Slate 50
+        ),
         useMaterial3: true,
+        fontFamily: 'Roboto',
       ),
       home: const WifiConnectorHomePage(),
     );
@@ -103,7 +120,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   }
 
   /// Checks the current camera permission status.
-  /// Logs the result and handles exceptions if they arise.
   Future<void> _checkCameraPermission() async {
     try {
       developer.log(
@@ -132,7 +148,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   }
 
   /// Requests camera permission if not granted. If granted, opens the scanner widget.
-  /// Handles various status outputs, provides logging and displays appropriate UI dialogs/messages.
   Future<void> _requestAndScanQr() async {
     try {
       developer.log(
@@ -140,7 +155,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         name: 'WifiConnectorExample',
       );
 
-      // Check current permission state
       final status = await Permission.camera.status;
 
       if (status.isGranted) {
@@ -164,7 +178,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         });
         _showPermissionSettingsDialog();
       } else {
-        // Request the permission explicitly
         final result = await Permission.camera.request();
         developer.log(
           'Camera permission request result: $result',
@@ -203,24 +216,26 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     }
   }
 
-  /// Prompts user with a dialog to open app settings if permission is permanently denied.
+  /// Prompts user with a styled dialog to open app settings if permission is permanently denied.
   void _showPermissionSettingsDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Camera Permission Required'),
-          content: const Text(
-            'Camera permission is required to scan QR codes. '
-            'Please open application settings and grant camera access.',
-          ),
+        return _buildModernDialog(
+          title: 'Camera Permission Required',
+          content: 'Camera permission is required to scan QR codes. '
+              'Please open application settings and grant camera access.',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            TextButton(
-              child: const Text('Open Settings'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F2FE),
+                foregroundColor: const Color(0xFF0F172A),
+              ),
+              child: const Text('Open Settings', style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
@@ -232,25 +247,27 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     );
   }
 
-  /// Prompts user with a dialog to open app settings if location permission is permanently denied.
+  /// Prompts user with a styled dialog to open app settings if location permission is permanently denied.
   void _showLocationSettingsDialog({bool isPreciseRequired = false}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(isPreciseRequired ? 'Precise Location Required' : 'Location Permission Required'),
-          content: Text(
-            isPreciseRequired
-                ? 'Precise location permission (ACCESS_FINE_LOCATION) is required on Android to verify and connect to Wi-Fi networks. Please open settings and ensure location access is set to "Precise" (or enabled).'
-                : 'Location permission is required on Android to detect and connect to Wi-Fi networks. Please open application settings and grant location access.',
-          ),
+        return _buildModernDialog(
+          title: isPreciseRequired ? 'Precise Location Required' : 'Location Permission Required',
+          content: isPreciseRequired
+              ? 'Precise location permission (ACCESS_FINE_LOCATION) is required on Android to verify and connect to Wi-Fi networks. Please open settings and ensure location access is set to "Precise" (or enabled).'
+              : 'Location permission is required on Android to detect and connect to Wi-Fi networks. Please open application settings and grant location access.',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            TextButton(
-              child: const Text('Open Settings'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F2FE),
+                foregroundColor: const Color(0xFF0F172A),
+              ),
+              child: const Text('Open Settings', style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
@@ -297,7 +314,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   }) async {
     if (ssid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an SSID')),
+        _buildCustomSnackBar('Please enter an SSID', isError: true),
       );
       return;
     }
@@ -388,7 +405,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                   name: 'WifiConnectorExample',
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Scanner Error: $error')),
+                  _buildCustomSnackBar('Scanner Error: $error', isError: true),
                 );
               },
             ),
@@ -417,9 +434,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Loaded scanned credentials for "${credentials.ssid}"'),
-            ),
+            _buildCustomSnackBar('Loaded scanned credentials for "${credentials.ssid}"'),
           );
         } else {
           developer.log(
@@ -448,20 +463,18 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Wi-Fi QR Scanned'),
-          content: Text(
-            'SSID: ${credentials.ssid}\n'
-            'Security: ${credentials.securityType.name.toUpperCase()}\n\n'
-            'Do you want to connect to this Wi-Fi network now?',
-          ),
+        return _buildModernDialog(
+          title: 'Wi-Fi QR Scanned',
+          content: 'SSID: ${credentials.ssid}\n'
+              'Security: ${credentials.securityType.name.toUpperCase()}\n\n'
+              'Do you want to connect to this Wi-Fi network now?',
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: const Text('Fill Fields Only'),
+              child: const Text('Fill Fields Only', style: TextStyle(color: Color(0xFF00F2FE))),
               onPressed: () {
                 Navigator.of(context).pop();
                 setState(() {
@@ -471,14 +484,16 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                   _isHidden = credentials.isHidden;
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Loaded scanned credentials for "${credentials.ssid}"'),
-                  ),
+                  _buildCustomSnackBar('Loaded scanned credentials for "${credentials.ssid}"'),
                 );
               },
             ),
-            TextButton(
-              child: const Text('Connect Now'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00F2FE),
+                foregroundColor: const Color(0xFF0F172A),
+              ),
+              child: const Text('Connect Now', style: TextStyle(fontWeight: FontWeight.bold)),
               onPressed: () {
                 Navigator.of(context).pop();
                 _connectWithScannedCredentials(credentials);
@@ -525,214 +540,527 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _isHidden = _parsedCredentials!.isHidden;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Copied QR details to manual form')),
+        _buildCustomSnackBar('Copied QR details to manual form'),
       );
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wi-Fi Connector Plus Example'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+  // --- UI Helpers ---
+
+  SnackBar _buildCustomSnackBar(String message, {bool isError = false}) {
+    return SnackBar(
+      backgroundColor: isError ? const Color(0xFFE94057) : const Color(0xFF1E293B),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.white : const Color(0xFF00F2FE),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: isError ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+    );
+  }
+
+  Widget _buildModernDialog({
+    required String title,
+    required String content,
+    required List<Widget> actions,
+  }) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1E293B),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFF334155)),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+      ),
+      content: Text(
+        content,
+        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
+      ),
+      actions: actions,
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF334155)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x26000000),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Status Card
-            Card(
-              color: _isConnecting
-                  ? Colors.blue.shade50
-                  : (_statusMessage == 'Idle'
-                        ? Colors.grey.shade100
-                        : (_lastConnectionSuccess
-                              ? Colors.green.shade50
-                              : Colors.red.shade50)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Connection Status',
-                      style: Theme.of(context).textTheme.titleMedium,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFF334155)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, color: const Color(0xFF00F2FE), size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 8),
-                    if (_isConnecting)
-                      const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    if (_isConnecting) const SizedBox(height: 8),
-                    Text(
-                      _statusMessage,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _isConnecting
-                            ? Colors.blue
-                            : (_lastConnectionSuccess
-                                  ? Colors.green
-                                  : Colors.red),
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGradientButton({
+    required VoidCallback? onPressed,
+    required String label,
+    required IconData icon,
+    bool isSecondary = false,
+  }) {
+    final gradient = isSecondary
+        ? const LinearGradient(
+            colors: [Color(0xFF8A2387), Color(0xFFE94057)],
+          )
+        : const LinearGradient(
+            colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)],
+          );
+
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        gradient: onPressed != null ? gradient : null,
+        color: onPressed == null ? const Color(0xFF334155) : null,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: onPressed != null
+            ? [
+                BoxShadow(
+                  color: isSecondary
+                      ? const Color(0x4DE94057)
+                      : const Color(0x4D00F2FE),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: onPressed == null ? const Color(0xFF64748B) : Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: onPressed == null ? const Color(0xFF64748B) : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String labelText,
+    String? hintText,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      suffixIcon: suffixIcon,
+      labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
+      hintStyle: const TextStyle(color: Color(0xFF64748B)),
+      filled: true,
+      fillColor: const Color(0xFF0F172A),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF00F2FE), width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine dynamic background and colors for the connection status card
+    Color statusBorderColor = const Color(0xFF334155);
+    Color statusBgColor = const Color(0xFF1E293B);
+    Color statusTextGradientColor = const Color(0xFF94A3B8);
+    IconData statusIcon = Icons.info_outline;
+
+    if (_isConnecting) {
+      statusBorderColor = const Color(0x8000F2FE);
+      statusBgColor = const Color(0x0D00F2FE);
+      statusTextGradientColor = const Color(0xFF00F2FE);
+      statusIcon = Icons.sync;
+    } else if (_statusMessage != 'Idle') {
+      if (_lastConnectionSuccess) {
+        statusBorderColor = const Color(0x8010B981);
+        statusBgColor = const Color(0x0D10B981);
+        statusTextGradientColor = const Color(0xFF10B981);
+        statusIcon = Icons.check_circle_outline;
+      } else {
+        statusBorderColor = const Color(0x80EF4444);
+        statusBgColor = const Color(0x0DEF4444);
+        statusTextGradientColor = const Color(0xFFEF4444);
+        statusIcon = Icons.error_outline;
+      }
+    }
+
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          // Elegant Header / App Bar
+          SliverAppBar(
+            expandedHeight: 120.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F172A),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Wi-Fi Connector Plus',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+              centerTitle: true,
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF0B0F19), Color(0xFF0F172A)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+          ),
 
-            // QR Section
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Connect via QR Code Raw String',
-                      style: Theme.of(context).textTheme.titleLarge,
+          // Main body content
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Connection Status Panel
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: statusBgColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: statusBorderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      if (_isConnecting)
+                        const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00F2FE)),
+                          ),
+                        )
+                      else
+                        Icon(statusIcon, color: statusTextGradientColor, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _isConnecting
+                                  ? 'STATUS: CONNECTING'
+                                  : 'STATUS: ${_statusMessage == 'Idle' ? 'IDLE' : (_lastConnectionSuccess ? 'CONNECTED' : 'DISCONNECTED')}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                                color: statusTextGradientColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _statusMessage,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Quick Launch Scanner widget
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)],
                     ),
-                    const SizedBox(height: 12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0x4D00F2FE),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: !_isConnecting ? _requestAndScanQr : null,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.qr_code_scanner,
+                              color: Color(0xFF0F172A),
+                              size: 28,
+                            ),
+                            const SizedBox(width: 14),
+                            Text(
+                              _cameraPermissionStatus.isGranted
+                                  ? 'Scan Wi-Fi QR Code'
+                                  : 'Launch QR Scanner',
+                              style: const TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // QR Section
+                _buildSectionCard(
+                  title: 'Connect via QR Raw String',
+                  icon: Icons.code,
+                  children: [
                     TextField(
                       controller: _qrController,
-                      decoration: const InputDecoration(
-                        labelText: 'QR Code String',
-                        border: OutlineInputBorder(),
+                      decoration: _buildInputDecoration(
+                        labelText: 'Raw QR String',
                         hintText: 'WIFI:S:SSID;T:WPA;P:Password;;',
                       ),
                       maxLines: 2,
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     if (_parsedCredentials != null) ...[
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.deepPurple.shade50,
-                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF334155)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Parsed QR Credentials:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              'PARSED CREDENTIALS',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                                color: Color(0xFF00F2FE),
+                              ),
                             ),
-                            Text('SSID: ${_parsedCredentials!.ssid}'),
-                            Text(
-                              'Security: ${_parsedCredentials!.securityType.name.toUpperCase()}',
+                            const SizedBox(height: 8),
+                            _buildInfoRow('SSID:', _parsedCredentials!.ssid),
+                            _buildInfoRow(
+                              'Security:',
+                              _parsedCredentials!.securityType.name.toUpperCase(),
                             ),
-                            Text(
-                              'Password: ${_parsedCredentials!.password ?? "None"}',
+                            _buildInfoRow(
+                              'Password:',
+                              _parsedCredentials!.password ?? 'None',
                             ),
-                            Text(
-                              'Hidden SSID: ${_parsedCredentials!.isHidden}',
+                            _buildInfoRow(
+                              'Hidden SSID:',
+                              _parsedCredentials!.isHidden.toString(),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                     ] else ...[
-                      const Text(
-                        'Invalid QR string format',
-                        style: TextStyle(color: Colors.red),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0x337F1D1D),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0x4DEF4444)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Color(0xFFF87171), size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              'Invalid Wi-Fi QR format detected',
+                              style: TextStyle(color: Color(0xFFF87171), fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                     ],
-                    ElevatedButton.icon(
-                      onPressed: !_isConnecting ? _requestAndScanQr : null,
-                      icon: const Icon(Icons.camera_alt),
-                      label: Text(
-                        _cameraPermissionStatus.isGranted
-                            ? 'Scan QR with Camera'
-                            : 'Scan QR (Requires Camera Permission)',
+                    SwitchListTile(
+                      title: const Text(
+                        'Autofill manual connection fields on scan',
+                        style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        minimumSize: const Size.fromHeight(48),
-                      ),
-                    ),
-                    CheckboxListTile(
-                      title: const Text('Fill manual fields on QR scan'),
                       value: _fillFieldsOnScan,
-                      controlAffinity: ListTileControlAffinity.leading,
+                      activeThumbColor: const Color(0xFF00F2FE),
                       contentPadding: EdgeInsets.zero,
                       dense: true,
                       onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            _fillFieldsOnScan = val;
-                          });
-                        }
+                        setState(() {
+                          _fillFieldsOnScan = val;
+                        });
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed:
-                                _parsedCredentials != null && !_isConnecting
+                          child: _buildGradientButton(
+                            onPressed: _parsedCredentials != null && !_isConnecting
                                 ? _connectWithQr
                                 : null,
-                            icon: const Icon(Icons.qr_code_scanner),
-                            label: const Text('Connect via QR'),
+                            icon: Icons.bolt,
+                            label: 'Connect QR',
                           ),
                         ),
                         if (_parsedCredentials != null) ...[
-                          const SizedBox(width: 8),
-                          IconButton(
-                            onPressed: _fillManualFromParsed,
-                            icon: const Icon(Icons.copy),
-                            tooltip: 'Copy details to Manual Connection form',
+                          const SizedBox(width: 12),
+                          Container(
+                            height: 52,
+                            width: 52,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFF334155)),
+                            ),
+                            child: IconButton(
+                              onPressed: _fillManualFromParsed,
+                              icon: const Icon(Icons.copy, color: Color(0xFF00F2FE)),
+                              tooltip: 'Copy details to Manual Connection form',
+                            ),
                           ),
                         ],
                       ],
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
 
-            // Manual Connection Section
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Manual Connection Section
+                _buildSectionCard(
+                  title: 'Manual Connection',
+                  icon: Icons.wifi,
                   children: [
-                    Text(
-                      'Manual Connection',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
                     TextField(
                       controller: _ssidController,
-                      decoration: const InputDecoration(
-                        labelText: 'SSID (Network Name)',
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _buildInputDecoration(labelText: 'SSID (Network Name)'),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      decoration: InputDecoration(
+                      decoration: _buildInputDecoration(
                         labelText: 'Password',
-                        border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: const Color(0xFF94A3B8),
                           ),
                           onPressed: () {
                             setState(() {
@@ -741,14 +1069,14 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                           },
                         ),
                       ),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<WifiSecurityType>(
                       initialValue: _securityType,
-                      decoration: const InputDecoration(
-                        labelText: 'Security Type',
-                        border: OutlineInputBorder(),
-                      ),
+                      dropdownColor: const Color(0xFF1E293B),
+                      decoration: _buildInputDecoration(labelText: 'Security Type'),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       items: WifiSecurityType.values.map((type) {
                         return DropdownMenuItem(
                           value: type,
@@ -764,32 +1092,56 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    CheckboxListTile(
-                      title: const Text('Is Hidden Network?'),
+                    SwitchListTile(
+                      title: const Text(
+                        'Is Hidden Network?',
+                        style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+                      ),
                       value: _isHidden,
+                      activeThumbColor: const Color(0xFF00F2FE),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
                       onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            _isHidden = val;
-                          });
-                        }
+                        setState(() {
+                          _isHidden = val;
+                        });
                       },
                     ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
+                    const SizedBox(height: 20),
+                    _buildGradientButton(
                       onPressed: !_isConnecting ? _connectManually : null,
-                      icon: const Icon(Icons.wifi),
-                      label: const Text('Connect Manually'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                      ),
+                      icon: Icons.wifi,
+                      label: 'Connect Manually',
+                      isSecondary: true,
                     ),
                   ],
                 ),
-              ),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
