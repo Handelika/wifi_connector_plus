@@ -1,7 +1,27 @@
 ## 0.0.2
 
-* Updated license badge in documentation to resolve Shields.io 404 error.
-* Minor version bump for public release.
+### Android
+
+* Implemented system-wide Wi-Fi connection flow on Android 10+ using `WifiNetworkSuggestion` and `ActivityResultListener`, replacing the app-scoped `WifiNetworkSpecifier` approach.
+* Fixed incorrect `WifiNetworkSuggestion` success status constant that prevented detecting successful connections.
+* Added mandatory runtime location permission check and request APIs: `isLocationPermissionGranted()` and `requestLocationPermission()`.
+* Added automatic pre-connection permission check inside the `connect()` API.
+* Added `ACCESS_FINE_LOCATION` to the Android manifest for Wi-Fi scanning on Android 9+.
+* Added consumer Proguard rules for ML Kit and `mobile_scanner` to prevent release-build crashes caused by R8/Proguard obfuscation.
+* Upgraded `mobile_scanner` dependency to `7.2.0`.
+
+### Dart / Core
+
+* Improved `WifiQrParser` robustness: case-insensitive security type normalization, trimmed whitespace from parsed fields, and added support for `mobile_scanner` structured barcode data.
+* Updated `WifiQrScannerView` to surface the raw QR string alongside parsed `WifiCredentials` via the `onQrScanned` callback.
+* Fixed `WifiQrScannerView` crash caused by unhandled `CameraFacing.external` / `CameraFacing.unknown` enum values during camera initialization.
+
+### Documentation
+
+* Added `THIRD_PARTY_NOTICES.md` with license attributions for `permission_handler` and `mobile_scanner`.
+* Updated `README.md` with pub.dev badges, platform support table, and collapsible Android/iOS setup guides.
+* Fixed mockup image in `README.md` to use an absolute repository URL so it renders correctly on pub.dev.
+* Applied `dart format` across all library and example source files.
 
 ## 0.0.1
 
