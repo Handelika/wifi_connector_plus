@@ -297,25 +297,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     );
   }
 
-  /// Checks and requests location permission on Android.
-  Future<bool> _checkAndRequestLocationPermission() async {
-    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
-    if (!isAndroid) return true;
-
-    final granted = await _wifiConnector.isLocationPermissionGranted();
-    if (granted) {
-      return true;
-    }
-
-    final status = await Permission.location.status;
-    if (status.isPermanentlyDenied) {
-      _showLocationSettingsDialog();
-      return false;
-    }
-
-    return _wifiConnector.requestLocationPermission();
-  }
-
   void _parseCurrentQr() {
     setState(() {
       _parsedCredentials = _wifiConnector.parseWifiQr(_qrController.text);
