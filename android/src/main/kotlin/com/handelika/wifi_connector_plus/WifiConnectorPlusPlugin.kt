@@ -57,68 +57,112 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
-                val specifierBuilder = WifiNetworkSpecifier.Builder()
+                val suggestionBuilder = WifiNetworkSuggestion.Builder()
                     .setIsHiddenSsid(isHidden)
 
                 if ((securityType == "WPA" || securityType == "WPA2") && !password.isNullOrEmpty()) {
-                    specifierBuilder.setSsid(ssid)
-                    specifierBuilder.setWpa2Passphrase(password)
+                    suggestionBuilder.setSsid(ssid)
+                    suggestionBuilder.setWpa2Passphrase(password)
                 } else if (securityType == "WPA3" && !password.isNullOrEmpty()) {
-                    specifierBuilder.setSsid(ssid)
-                    specifierBuilder.setWpa3Passphrase(password)
+                    suggestionBuilder.setSsid(ssid)
+                    suggestionBuilder.setWpa3Passphrase(password)
                 } else if (securityType == "WEP" && !password.isNullOrEmpty()) {
-                    specifierBuilder.setSsid(ssid)
-                    specifierBuilder.setWpa2Passphrase(password)
+                    suggestionBuilder.setSsid(ssid)
+                    suggestionBuilder.setWpa2Passphrase(password)
                 } else {
-                    specifierBuilder.setSsid(ssid)
+                    suggestionBuilder.setSsid(ssid)
                 }
 
-                val specifier = specifierBuilder.build()
-                val request = NetworkRequest.Builder()
-                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                    .setNetworkSpecifier(specifier)
-                    .build()
+                val suggestion = suggestionBuilder.build()
+                val suggestions = listOf(suggestion)
+
+                // Remove existing suggestions for this SSID to avoid conflicts
+                wifiManager.removeNetworkSuggestions(suggestions)
+
+                val status = wifiManager.addNetworkSuggestions(suggestions)
+                if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                    result.success(false)
+                    return
+                }
+
+                // Check if already connected
+                @Suppress("DEPRECATION")
+                val currentWifiInfo = wifiManager.connectionInfo
+                val currentSsid = currentWifiInfo?.ssid?.replace("\"", "")
+                if (currentSsid == ssid) {
+                    result.success(true)
+                    return
+                }
 
                 val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val networkRequest = NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .build()
 
-                connectivityManager.requestNetwork(request, object : ConnectivityManager.NetworkCallback() {
+                val handler = android.os.Handler(android.os.Looper.getMainLooper())
+                var callbackRegistered = true
+                var hasReplied = false
+
+                val networkCallback = object : ConnectivityManager.NetworkCallback() {
                     override fun onAvailable(network: Network) {
                         super.onAvailable(network)
-                        connectivityManager.bindProcessToNetwork(network)
-                        result.success(true)
+                        checkConnection()
                     }
 
-                    override fun onUnavailable() {
-                        super.onUnavailable()
-                        result.success(false)
-                    }
-                })
-            } catch (e: Exception) {
-                // Fallback to Suggestion API if requestNetwork throws
-                try {
-                    val suggestionBuilder = WifiNetworkSuggestion.Builder()
-                        .setIsHiddenSsid(isHidden)
-
-                    if ((securityType == "WPA" || securityType == "WPA2") && !password.isNullOrEmpty()) {
-                        suggestionBuilder.setSsid(ssid)
-                        suggestionBuilder.setWpa2Passphrase(password)
-                    } else if (securityType == "WPA3" && !password.isNullOrEmpty()) {
-                        suggestionBuilder.setSsid(ssid)
-                        suggestionBuilder.setWpa3Passphrase(password)
-                    } else {
-                        suggestionBuilder.setSsid(ssid)
+                    override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                        super.onCapabilitiesChanged(network, networkCapabilities)
+                        checkConnection(networkCapabilities)
                     }
 
-                    val suggestions = listOf(suggestionBuilder.build())
-                    val status = wifiManager.addNetworkSuggestions(suggestions)
-                    if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-                        result.success(true)
-                    } else {
-                        result.success(false)
+                    private fun checkConnection(networkCapabilities: NetworkCapabilities? = null) {
+                        val wifiInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && networkCapabilities != null) {
+                            networkCapabilities.transportInfo as? android.net.wifi.WifiInfo
+                        } else {
+                            null
+                        }
+                        @Suppress("DEPRECATION")
+                        val connectedSsid = (wifiInfo?.ssid ?: wifiManager.connectionInfo?.ssid)?.replace("\"", "")
+                        if (connectedSsid == ssid) {
+                            handler.post {
+                                if (!hasReplied) {
+                                    hasReplied = true
+                                    if (callbackRegistered) {
+                                        try {
+                                            connectivityManager.unregisterNetworkCallback(this)
+                                        } catch (e: Exception) {}
+                                        callbackRegistered = false
+                                    }
+                                    result.success(true)
+                                }
+                            }
+                        }
                     }
-                } catch (ex: Exception) {
-                    result.success(false)
                 }
+
+                val timeoutRunnable = Runnable {
+                    if (!hasReplied) {
+                        hasReplied = true
+                        if (callbackRegistered) {
+                            try {
+                                connectivityManager.unregisterNetworkCallback(networkCallback)
+                            } catch (e: Exception) {}
+                            callbackRegistered = false
+                        }
+                        @Suppress("DEPRECATION")
+                        val finalWifiInfo = wifiManager.connectionInfo
+                        val finalSsid = finalWifiInfo?.ssid?.replace("\"", "")
+                        if (finalSsid == ssid) {
+                            result.success(true)
+                        } else {
+                            result.success(false)
+                        }
+                    }
+                }
+
+                connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+                handler.postDelayed(timeoutRunnable, 15000) // 15 seconds timeout
+            } catch (e: Exception) {
+                result.success(false)
             }
         } else {
             // Older Android versions

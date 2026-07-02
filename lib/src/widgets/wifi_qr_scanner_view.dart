@@ -10,7 +10,8 @@ import '../wifi_qr_parser.dart';
 class WifiQrScannerView extends StatefulWidget {
   /// Callback triggered when a valid Wi-Fi QR code is successfully scanned.
   /// Receives the parsed [WifiCredentials] and the original raw scanned QR string.
-  final void Function(WifiCredentials credentials, String rawValue) onScanSuccess;
+  final void Function(WifiCredentials credentials, String rawValue)
+  onScanSuccess;
 
   /// Callback triggered when permission is denied or a scanned QR code cannot be parsed.
   final ValueChanged<String> onError;
@@ -155,6 +156,10 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                     return const Icon(Icons.camera_front);
                   case CameraFacing.back:
                     return const Icon(Icons.camera_rear);
+                  case CameraFacing.external:
+                    return const Icon(Icons.camera);
+                  case CameraFacing.unknown:
+                    return const Icon(Icons.camera);
                 }
               },
             ),
