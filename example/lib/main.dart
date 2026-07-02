@@ -644,19 +644,20 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF334155)),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x26000000),
+            color: Color(0x26000000),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
+      child: Material(
+        color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

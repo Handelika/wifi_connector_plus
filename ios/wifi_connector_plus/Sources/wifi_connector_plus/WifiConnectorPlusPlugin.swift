@@ -20,7 +20,7 @@ public class WifiConnectorPlusPlugin: NSObject, FlutterPlugin {
         return
       }
       let password = args["password"] as? String
-      let securityType = args["securityType"] as? String ?? "WPA"
+      let securityType = (args["securityType"] as? String ?? "WPA").uppercased()
       let isHidden = args["isHidden"] as? Bool ?? false
       
       connectToWifi(ssid: ssid, password: password, securityType: securityType, isHidden: isHidden, result: result)

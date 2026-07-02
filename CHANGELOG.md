@@ -1,3 +1,8 @@
+## 0.0.2
+
+* Updated license badge in documentation to resolve Shields.io 404 error.
+* Minor version bump for public release.
+
 ## 0.0.1
 
 * Initial release of `wifi_connector_plus`.

@@ -20,6 +20,13 @@ class WifiQrParser {
 
     int index = 0;
     while (index < content.length) {
+      // Skip leading/consecutive semicolons and whitespace
+      while (index < content.length &&
+          (content[index] == ';' || content[index].trim().isEmpty)) {
+        index++;
+      }
+      if (index >= content.length) break;
+
       // Find the next colon that is not escaped to locate key
       int colonIdx = -1;
       for (int i = index; i < content.length; i++) {
@@ -30,7 +37,7 @@ class WifiQrParser {
       }
       if (colonIdx == -1) break;
 
-      final key = content.substring(index, colonIdx);
+      final key = content.substring(index, colonIdx).trim().toUpperCase();
 
       // Now find the next semicolon that is not escaped
       int semiIdx = -1;
@@ -47,7 +54,7 @@ class WifiQrParser {
       }
 
       final rawValue = content.substring(colonIdx + 1, semiIdx);
-      final value = _unescape(rawValue);
+      final value = cleanValue(_unescape(rawValue));
 
       if (key == 'S') {
         ssid = value;
@@ -66,12 +73,26 @@ class WifiQrParser {
       return null;
     }
 
+    final parsedType = WifiSecurityType.fromString(type);
+    var securityType = parsedType;
+    if (parsedType == WifiSecurityType.none && password != null && password.isNotEmpty) {
+      securityType = WifiSecurityType.wpa; // Default to WPA if password is provided but type is unspecified or none
+    }
+
     return WifiCredentials(
       ssid: ssid,
       password: password,
-      securityType: WifiSecurityType.fromString(type),
+      securityType: securityType,
       isHidden: isHidden,
     );
+  }
+
+  static String cleanValue(String value) {
+    var cleaned = value.trim();
+    if (cleaned.startsWith('"') && cleaned.endsWith('"') && cleaned.length >= 2) {
+      cleaned = cleaned.substring(1, cleaned.length - 1);
+    }
+    return cleaned;
   }
 
   static String _unescape(String value) {

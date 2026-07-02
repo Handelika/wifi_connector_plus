@@ -38,7 +38,7 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler {
             "connect" -> {
                 val ssid = call.argument<String>("ssid") ?: ""
                 val password = call.argument<String>("password")
-                val securityType = call.argument<String>("securityType") ?: "WPA"
+                val securityType = (call.argument<String>("securityType") ?: "WPA").uppercase()
                 val isHidden = call.argument<Boolean>("isHidden") ?: false
 
                 connectToWifi(ssid, password, securityType, isHidden, result)

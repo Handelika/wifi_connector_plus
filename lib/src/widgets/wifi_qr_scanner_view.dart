@@ -175,19 +175,56 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
               try {
                 final List<Barcode> barcodes = capture.barcodes;
                 if (barcodes.isNotEmpty) {
-                  final code = barcodes.first.rawValue;
-                  if (code != null && code.isNotEmpty) {
-                    final credentials = WifiQrParser.parse(code);
-                    if (credentials != null) {
-                      _controller.stop();
-                      widget.onScanSuccess(credentials, code);
-                    } else {
-                      developer.log(
-                        'Scanned code is not a valid Wi-Fi configuration: $code',
-                        name: 'WifiQrScannerView',
+                  final barcode = barcodes.first;
+                  WifiCredentials? credentials;
+
+                  // 1. Try accessing structured wifi properties parsed by mobile_scanner
+                  if (barcode.type == BarcodeType.wifi && barcode.wifi != null) {
+                    final wifi = barcode.wifi!;
+                    final ssid = wifi.ssid;
+                    if (ssid != null && ssid.isNotEmpty) {
+                      WifiSecurityType secType = WifiSecurityType.none;
+                      if (wifi.encryptionType == EncryptionType.wpa) {
+                        secType = WifiSecurityType.wpa;
+                      } else if (wifi.encryptionType == EncryptionType.wep) {
+                        secType = WifiSecurityType.wep;
+                      }
+
+                      // Default to WPA if password is set but encryptionType is unknown/open
+                      if (secType == WifiSecurityType.none &&
+                          wifi.password != null &&
+                          wifi.password!.isNotEmpty) {
+                        secType = WifiSecurityType.wpa;
+                      }
+
+                      credentials = WifiCredentials(
+                        ssid: WifiQrParser.cleanValue(ssid),
+                        password: wifi.password != null
+                            ? WifiQrParser.cleanValue(wifi.password!)
+                            : null,
+                        securityType: secType,
+                        isHidden: false, // mobile_scanner does not expose hidden SSID status, fallback to false
                       );
-                      widget.onError('Invalid Wi-Fi QR Code format');
                     }
+                  }
+
+                  // 2. Fallback to raw string parsing if structured data isn't available or failed
+                  if (credentials == null) {
+                    final code = barcode.rawValue;
+                    if (code != null && code.isNotEmpty) {
+                      credentials = WifiQrParser.parse(code);
+                    }
+                  }
+
+                  if (credentials != null) {
+                    _controller.stop();
+                    widget.onScanSuccess(credentials, barcode.rawValue ?? '');
+                  } else {
+                    developer.log(
+                      'Scanned code is not a valid Wi-Fi configuration: ${barcode.rawValue}',
+                      name: 'WifiQrScannerView',
+                    );
+                    widget.onError('Invalid Wi-Fi QR Code format');
                   }
                 }
               } catch (e, stack) {

@@ -122,5 +122,36 @@ void main() {
       final creds = WifiQrParser.parse('WIFI:T:WPA;P:Pass;;');
       expect(creds, isNull);
     });
+
+    test('parses wifi QR with lowercase keys', () {
+      final creds = WifiQrParser.parse('WIFI:s:lowercase;t:wpa;p:pass;;');
+      expect(creds, isNotNull);
+      expect(creds!.ssid, 'lowercase');
+      expect(creds.password, 'pass');
+      expect(creds.securityType, WifiSecurityType.wpa);
+    });
+
+    test('parses wifi QR with double semicolons robustly', () {
+      final creds = WifiQrParser.parse('WIFI:S:MyNetwork;;T:WPA;P:SecretPass;;');
+      expect(creds, isNotNull);
+      expect(creds!.ssid, 'MyNetwork');
+      expect(creds.password, 'SecretPass');
+      expect(creds.securityType, WifiSecurityType.wpa);
+    });
+
+    test('parses wifi QR with surrounding quotes correctly', () {
+      final creds = WifiQrParser.parse('WIFI:S:"MyNetwork";P:"SecretPass";;');
+      expect(creds, isNotNull);
+      expect(creds!.ssid, 'MyNetwork');
+      expect(creds.password, 'SecretPass');
+    });
+
+    test('defaults to WPA when security type is omitted but password is present', () {
+      final creds = WifiQrParser.parse('WIFI:S:MyNetwork;P:SecretPass;;');
+      expect(creds, isNotNull);
+      expect(creds!.ssid, 'MyNetwork');
+      expect(creds.password, 'SecretPass');
+      expect(creds.securityType, WifiSecurityType.wpa);
+    });
   });
 }
