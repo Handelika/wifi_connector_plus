@@ -179,7 +179,8 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                   WifiCredentials? credentials;
 
                   // 1. Try accessing structured wifi properties parsed by mobile_scanner
-                  if (barcode.type == BarcodeType.wifi && barcode.wifi != null) {
+                  if (barcode.type == BarcodeType.wifi &&
+                      barcode.wifi != null) {
                     final wifi = barcode.wifi!;
                     final ssid = wifi.ssid;
                     if (ssid != null && ssid.isNotEmpty) {
@@ -203,7 +204,8 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                             ? WifiQrParser.cleanValue(wifi.password!)
                             : null,
                         securityType: secType,
-                        isHidden: false, // mobile_scanner does not expose hidden SSID status, fallback to false
+                        isHidden:
+                            false, // mobile_scanner does not expose hidden SSID status, fallback to false
                       );
                     }
                   }

@@ -363,8 +363,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
           result.error == WifiConnectError.permissionDenied) {
         _showLocationSettingsDialog(isPreciseRequired: true);
       }
-      if (!result.isSuccess &&
-          result.error == WifiConnectError.userCancelled) {
+      if (!result.isSuccess && result.error == WifiConnectError.userCancelled) {
         setState(() {
           _statusMessage = 'Connection cancelled by user.';
         });

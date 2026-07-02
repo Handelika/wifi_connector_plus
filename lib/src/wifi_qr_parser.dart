@@ -75,8 +75,11 @@ class WifiQrParser {
 
     final parsedType = WifiSecurityType.fromString(type);
     var securityType = parsedType;
-    if (parsedType == WifiSecurityType.none && password != null && password.isNotEmpty) {
-      securityType = WifiSecurityType.wpa; // Default to WPA if password is provided but type is unspecified or none
+    if (parsedType == WifiSecurityType.none &&
+        password != null &&
+        password.isNotEmpty) {
+      securityType = WifiSecurityType
+          .wpa; // Default to WPA if password is provided but type is unspecified or none
     }
 
     return WifiCredentials(
@@ -89,7 +92,9 @@ class WifiQrParser {
 
   static String cleanValue(String value) {
     var cleaned = value.trim();
-    if (cleaned.startsWith('"') && cleaned.endsWith('"') && cleaned.length >= 2) {
+    if (cleaned.startsWith('"') &&
+        cleaned.endsWith('"') &&
+        cleaned.length >= 2) {
       cleaned = cleaned.substring(1, cleaned.length - 1);
     }
     return cleaned;
