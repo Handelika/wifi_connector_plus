@@ -111,7 +111,7 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler {
 
                     val suggestions = listOf(suggestionBuilder.build())
                     val status = wifiManager.addNetworkSuggestions(suggestions)
-                    if (status == WifiManager.STATUS_SUGGESTION_SUCCESS) {
+                    if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
                         result.success(true)
                     } else {
                         result.success(false)
