@@ -60,6 +60,37 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     _parseCurrentQr();
     _qrController.addListener(_parseCurrentQr);
     _checkCameraPermission();
+    _requestLocationPermissionOnStartup();
+  }
+
+  /// Requests location permission when the app starts.
+  Future<void> _requestLocationPermissionOnStartup() async {
+    try {
+      developer.log(
+        'Requesting location permission on startup...',
+        name: 'WifiConnectorExample',
+      );
+      final granted = await _wifiConnector.requestLocationPermission();
+      developer.log(
+        'Startup location permission status: $granted',
+        name: 'WifiConnectorExample',
+      );
+      if (!granted) {
+        setState(() {
+          _statusMessage = 'Location permission is required for Wi-Fi connection.';
+        });
+      }
+    } catch (e, stackTrace) {
+      developer.log(
+        'Failed to request location permission on startup',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'WifiConnectorExample',
+      );
+      setState(() {
+        _statusMessage = 'Error requesting location permission on startup: $e';
+      });
+    }
   }
 
   @override
@@ -201,25 +232,137 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     );
   }
 
+  /// Prompts user with a dialog to open app settings if location permission is permanently denied.
+  void _showLocationSettingsDialog({bool isPreciseRequired = false}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isPreciseRequired ? 'Precise Location Required' : 'Location Permission Required'),
+          content: Text(
+            isPreciseRequired
+                ? 'Precise location permission (ACCESS_FINE_LOCATION) is required on Android to verify and connect to Wi-Fi networks. Please open settings and ensure location access is set to "Precise" (or enabled).'
+                : 'Location permission is required on Android to detect and connect to Wi-Fi networks. Please open application settings and grant location access.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('Open Settings'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Checks and requests location permission on Android.
+  Future<bool> _checkAndRequestLocationPermission() async {
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    if (!isAndroid) return true;
+
+    final granted = await _wifiConnector.isLocationPermissionGranted();
+    if (granted) {
+      return true;
+    }
+
+    final status = await Permission.location.status;
+    if (status.isPermanentlyDenied) {
+      _showLocationSettingsDialog();
+      return false;
+    }
+
+    return _wifiConnector.requestLocationPermission();
+  }
+
   void _parseCurrentQr() {
     setState(() {
       _parsedCredentials = _wifiConnector.parseWifiQr(_qrController.text);
     });
   }
 
-  Future<void> _connectWithQr() async {
+  /// Unified method to handle Wi-Fi connection attempts.
+  Future<void> _connect({
+    required String ssid,
+    String? password,
+    WifiSecurityType securityType = WifiSecurityType.wpa,
+    bool isHidden = false,
+    String connectionTypeLabel = 'Wi-Fi',
+  }) async {
+    if (ssid.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an SSID')),
+      );
+      return;
+    }
+
+    final hasLocationPermission = await _checkAndRequestLocationPermission();
+    if (!hasLocationPermission) {
+      setState(() {
+        _statusMessage = 'Location permission is required to connect on Android.';
+      });
+      return;
+    }
+
     setState(() {
       _isConnecting = true;
-      _statusMessage = 'Connecting via QR...';
+      _statusMessage = 'Connecting to $connectionTypeLabel: $ssid...';
     });
 
-    final result = await _wifiConnector.connectWithQr(_qrController.text);
+    try {
+      final result = await _wifiConnector.connect(
+        ssid: ssid,
+        password: password,
+        securityType: securityType,
+        isHidden: isHidden,
+      );
 
-    setState(() {
-      _isConnecting = false;
-      _lastConnectionSuccess = result.isSuccess;
-      _statusMessage = result.message;
-    });
+      setState(() {
+        _isConnecting = false;
+        _lastConnectionSuccess = result.isSuccess;
+        _statusMessage = result.message;
+      });
+
+      if (!result.isSuccess && result.error == WifiConnectError.permissionDenied) {
+        _showLocationSettingsDialog(isPreciseRequired: true);
+      }
+    } catch (e, stackTrace) {
+      developer.log(
+        'Exception trying to connect to Wi-Fi',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'WifiConnectorExample',
+      );
+      setState(() {
+        _isConnecting = false;
+        _lastConnectionSuccess = false;
+        _statusMessage = 'Connection failed: $e';
+      });
+    }
+  }
+
+  Future<void> _connectWithQr() async {
+    final credentials = _wifiConnector.parseWifiQr(_qrController.text);
+    if (credentials == null) {
+      setState(() {
+        _statusMessage = 'Invalid Wi-Fi QR code format';
+      });
+      return;
+    }
+
+    await _connect(
+      ssid: credentials.ssid,
+      password: credentials.password,
+      securityType: credentials.securityType,
+      isHidden: credentials.isHidden,
+      connectionTypeLabel: 'QR Wi-Fi',
+    );
   }
 
   /// Opens the self-contained WifiQrScannerView. Once a QR is scanned, parses credentials
@@ -351,67 +494,26 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   Future<void> _connectWithScannedCredentials(
     WifiCredentials credentials,
   ) async {
-    setState(() {
-      _isConnecting = true;
-      _statusMessage = 'Connecting to scanned Wi-Fi: ${credentials.ssid}...';
-    });
-
-    try {
-      final connResult = await _wifiConnector.connect(
-        ssid: credentials.ssid,
-        password: credentials.password,
-        securityType: credentials.securityType,
-        isHidden: credentials.isHidden,
-      );
-
-      setState(() {
-        _isConnecting = false;
-        _lastConnectionSuccess = connResult.isSuccess;
-        _statusMessage = connResult.message;
-      });
-    } catch (e, stackTrace) {
-      developer.log(
-        'Exception trying to connect via scanned QR credentials',
-        error: e,
-        stackTrace: stackTrace,
-        name: 'WifiConnectorExample',
-      );
-      setState(() {
-        _isConnecting = false;
-        _lastConnectionSuccess = false;
-        _statusMessage = 'Connection failed: $e';
-      });
-    }
+    await _connect(
+      ssid: credentials.ssid,
+      password: credentials.password,
+      securityType: credentials.securityType,
+      isHidden: credentials.isHidden,
+      connectionTypeLabel: 'scanned QR Wi-Fi',
+    );
   }
 
   Future<void> _connectManually() async {
     final ssid = _ssidController.text.trim();
     final password = _passwordController.text;
 
-    if (ssid.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter an SSID')));
-      return;
-    }
-
-    setState(() {
-      _isConnecting = true;
-      _statusMessage = 'Connecting manually to $ssid...';
-    });
-
-    final result = await _wifiConnector.connect(
+    await _connect(
       ssid: ssid,
       password: password.isEmpty ? null : password,
       securityType: _securityType,
       isHidden: _isHidden,
+      connectionTypeLabel: 'manually configured Wi-Fi',
     );
-
-    setState(() {
-      _isConnecting = false;
-      _lastConnectionSuccess = result.isSuccess;
-      _statusMessage = result.message;
-    });
   }
 
   void _fillManualFromParsed() {

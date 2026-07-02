@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'src/models/wifi_connect_result.dart';
 import 'src/models/wifi_credentials.dart';
 import 'src/wifi_connector_plus_platform_interface.dart';
@@ -12,6 +15,23 @@ class WifiConnectorPlus {
   /// Get the current platform version.
   Future<String?> getPlatformVersion() {
     return WifiConnectorPlusPlatform.instance.getPlatformVersion();
+  }
+
+  /// Checks if the location permission is granted on the device.
+  ///
+  /// On Android 9+, this permission is required to verify or establish Wi-Fi connections.
+  Future<bool> isLocationPermissionGranted() async {
+    if (!Platform.isAndroid) return true;
+    return Permission.location.isGranted;
+  }
+
+  /// Requests the location permission on the device.
+  ///
+  /// Returns `true` if the permission was granted.
+  Future<bool> requestLocationPermission() async {
+    if (!Platform.isAndroid) return true;
+    final status = await Permission.location.request();
+    return status.isGranted;
   }
 
   /// Connects to a Wi-Fi network manually using SSID, password, and security type.
@@ -33,6 +53,16 @@ class WifiConnectorPlus {
       );
     }
 
+    if (Platform.isAndroid) {
+      final hasLocationPermission = await Permission.location.isGranted;
+      if (!hasLocationPermission) {
+        return WifiConnectResult.failure(
+          message: 'Location permission (ACCESS_FINE_LOCATION) is required to connect to Wi-Fi.',
+          error: WifiConnectError.permissionDenied,
+        );
+      }
+    }
+
     try {
       final success = await WifiConnectorPlusPlatform.instance.connect(
         ssid,
@@ -52,6 +82,17 @@ class WifiConnectorPlus {
           error: WifiConnectError.unknown,
         );
       }
+    } on PlatformException catch (e) {
+      WifiConnectError errorType = WifiConnectError.unknown;
+      if (e.code == 'PERMISSION_DENIED') {
+        errorType = WifiConnectError.permissionDenied;
+      } else if (e.code == 'LOCATION_SERVICES_DISABLED') {
+        errorType = WifiConnectError.permissionDenied;
+      }
+      return WifiConnectResult.failure(
+        message: e.message ?? 'An error occurred: $e',
+        error: errorType,
+      );
     } on Exception catch (e) {
       return WifiConnectResult.failure(
         message: 'An error occurred: $e',

@@ -39,7 +39,10 @@ Add the following permissions to your `android/app/src/main/AndroidManifest.xml`
 
 #### Android Configuration Requirements:
 - **Location Services**: Location services must be enabled on the target device for Wi-Fi network scanning and connection APIs to function correctly on newer Android versions.
-- **Runtime Permissions**: Make sure to check/request location and camera permissions dynamically at runtime before triggering connection or scanning logic. (Note: `WifiQrScannerView` automatically requests the camera permission).
+- **Runtime Permissions**: Make sure to check/request location and camera permissions dynamically at runtime before triggering connection or scanning logic.
+  - The plugin provides `isLocationPermissionGranted()` and `requestLocationPermission()` helper methods for this purpose.
+  - The `connect()` method automatically performs a pre-check on Android and returns a `WifiConnectError.permissionDenied` failure if location permission is not granted.
+  - `WifiQrScannerView` automatically checks and requests the camera permission.
 </details>
 
 <details>
@@ -144,6 +147,30 @@ class ScannerScreen extends StatelessWidget {
   }
 }
 ```
+
+### 4. Checking and Requesting Location Permissions
+
+On Android, location permissions are mandatory for Wi-Fi connection operations. You can utilize the built-in helper methods to check and request location permissions:
+
+```dart
+final wifiConnector = WifiConnectorPlus();
+
+// Check if location permission is granted
+bool isGranted = await wifiConnector.isLocationPermissionGranted();
+
+if (!isGranted) {
+  // Request location permission
+  bool hasGranted = await wifiConnector.requestLocationPermission();
+  if (hasGranted) {
+    print("Location permission granted by user.");
+  } else {
+    print("Location permission denied by user.");
+  }
+}
+```
+
+> [!NOTE]
+> The `connect` method performs an automatic location permission check on Android prior to starting the Wi-Fi connection and returns a descriptive error state if not granted.
 
 ---
 

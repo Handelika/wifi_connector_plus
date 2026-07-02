@@ -6,3 +6,7 @@
 * Pre-built `WifiQrScannerView` widget for camera-based scanning and automatic connection parsing.
 * Native Android integration using `WifiNetworkSpecifier` / `WifiNetworkSuggestion` on Android 10+ and legacy API fallback.
 * Native iOS integration using `NEHotspotConfigurationManager`.
+* **Android Location Permissions Support**:
+  - Implemented runtime check and request APIs for location permission: `isLocationPermissionGranted()` and `requestLocationPermission()`.
+  - Added automatic pre-connection permission checks inside the `connect()` API for Android.
+  - Configured location permission requesting at application startup in the example project.

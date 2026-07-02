@@ -1,6 +1,9 @@
 package com.handelika.wifi_connector_plus
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -54,6 +57,30 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler {
         result: Result
     ) {
         val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        if (!wifiManager.isWifiEnabled) {
+            result.error("WIFI_DISABLED", "Wi-Fi is disabled. Please enable Wi-Fi to connect to a network.", null)
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (!hasLocationPermission()) {
+                result.error(
+                    "PERMISSION_DENIED",
+                    "Location permission (ACCESS_FINE_LOCATION) is required on Android 9+ to verify Wi-Fi connection.",
+                    null
+                )
+                return
+            }
+            if (!isLocationEnabled()) {
+                result.error(
+                    "LOCATION_SERVICES_DISABLED",
+                    "Location services (GPS) must be enabled on Android 9+ to verify Wi-Fi connection.",
+                    null
+                )
+                return
+            }
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
@@ -198,6 +225,20 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler {
             } catch (e: Exception) {
                 result.success(false)
             }
+        }
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            locationManager.isLocationEnabled
+        } else {
+            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         }
     }
 
