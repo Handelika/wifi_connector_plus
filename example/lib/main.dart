@@ -337,18 +337,12 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       return;
     }
 
-    final hasLocationPermission = await _checkAndRequestLocationPermission();
-    if (!hasLocationPermission) {
-      setState(() {
-        _statusMessage =
-            'Location permission is required to connect on Android.';
-      });
-      return;
-    }
-
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
     setState(() {
       _isConnecting = true;
-      _statusMessage = 'Connecting to $connectionTypeLabel: $ssid...';
+      _statusMessage = isAndroid
+          ? 'Opening Wi-Fi dialog for $ssid... Please approve in the system prompt.'
+          : 'Connecting to $connectionTypeLabel: $ssid...';
     });
 
     try {
@@ -368,6 +362,12 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       if (!result.isSuccess &&
           result.error == WifiConnectError.permissionDenied) {
         _showLocationSettingsDialog(isPreciseRequired: true);
+      }
+      if (!result.isSuccess &&
+          result.error == WifiConnectError.userCancelled) {
+        setState(() {
+          _statusMessage = 'Connection cancelled by user.';
+        });
       }
     } catch (e, stackTrace) {
       developer.log(

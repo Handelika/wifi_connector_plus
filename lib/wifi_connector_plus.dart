@@ -53,16 +53,8 @@ class WifiConnectorPlus {
       );
     }
 
-    if (Platform.isAndroid) {
-      final hasLocationPermission = await Permission.location.isGranted;
-      if (!hasLocationPermission) {
-        return WifiConnectResult.failure(
-          message:
-              'Location permission (ACCESS_FINE_LOCATION) is required to connect to Wi-Fi.',
-          error: WifiConnectError.permissionDenied,
-        );
-      }
-    }
+    // Android 10+ (WifiNetworkSpecifier): Location permission gerekmez.
+    // Android 9 ve altı için opsiyonel — native tarafında zaten kontrol ediliyor.
 
     try {
       final success = await WifiConnectorPlusPlatform.instance.connect(
@@ -89,6 +81,14 @@ class WifiConnectorPlus {
         errorType = WifiConnectError.permissionDenied;
       } else if (e.code == 'LOCATION_SERVICES_DISABLED') {
         errorType = WifiConnectError.permissionDenied;
+      } else if (e.code == 'INVALID_CREDENTIALS') {
+        errorType = WifiConnectError.invalidCredentials;
+      } else if (e.code == 'CONNECTION_TIMEOUT') {
+        errorType = WifiConnectError.timeout;
+      } else if (e.code == 'NETWORK_UNAVAILABLE') {
+        errorType = WifiConnectError.invalidCredentials;
+      } else if (e.code == 'USER_CANCELLED') {
+        errorType = WifiConnectError.userCancelled;
       }
       return WifiConnectResult.failure(
         message: e.message ?? 'An error occurred: $e',

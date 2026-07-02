@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:wifi_connector_plus/wifi_connector_plus.dart';
 import 'package:wifi_connector_plus/src/wifi_connector_plus_platform_interface.dart';
 import 'package:wifi_connector_plus/src/wifi_connector_plus_method_channel.dart';
@@ -7,6 +8,8 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockWifiConnectorPlusPlatform
     with MockPlatformInterfaceMixin
     implements WifiConnectorPlusPlatform {
+  bool shouldThrowInvalidCredentials = false;
+
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 
@@ -17,6 +20,12 @@ class MockWifiConnectorPlusPlatform
     String securityType,
     bool isHidden,
   ) {
+    if (shouldThrowInvalidCredentials) {
+      throw PlatformException(
+        code: 'INVALID_CREDENTIALS',
+        message: 'Password is required for secured network type: $securityType',
+      );
+    }
     return Future.value(ssid == 'ValidSSID' && password == 'ValidPassword');
   }
 }
@@ -61,6 +70,18 @@ void main() {
       );
       expect(result.isSuccess, isFalse);
       expect(result.error, WifiConnectError.unknown);
+    });
+
+    test('connect manual - invalid credentials platform exception', () async {
+      fakePlatform.shouldThrowInvalidCredentials = true;
+      final result = await wifiConnector.connect(
+        ssid: 'ValidSSID',
+        password: '',
+        securityType: WifiSecurityType.wpa,
+      );
+      expect(result.isSuccess, isFalse);
+      expect(result.error, WifiConnectError.invalidCredentials);
+      expect(result.message, contains('Password is required'));
     });
 
     test('connectWithQr - success', () async {
