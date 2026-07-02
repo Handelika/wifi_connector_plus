@@ -15,7 +15,8 @@ A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings
 
 ### 1. Platform Setup & Permissions
 
-#### Android
+<details>
+<summary><b>Android Setup</b></summary>
 
 Add the following permissions to your `android/app/src/main/AndroidManifest.xml`:
 
@@ -36,7 +37,13 @@ Add the following permissions to your `android/app/src/main/AndroidManifest.xml`
 </manifest>
 ```
 
-#### iOS
+#### Android Configuration Requirements:
+- **Location Services**: Location services must be enabled on the target device for Wi-Fi network scanning and connection APIs to function correctly on newer Android versions.
+- **Runtime Permissions**: Make sure to check/request location and camera permissions dynamically at runtime before triggering connection or scanning logic. (Note: `WifiQrScannerView` automatically requests the camera permission).
+</details>
+
+<details>
+<summary><b>iOS Setup</b></summary>
 
 Add the following keys to your `ios/Runner/Info.plist`:
 
@@ -47,7 +54,16 @@ Add the following keys to your `ios/Runner/Info.plist`:
 <string>This app needs location access to detect nearby Wi-Fi networks.</string>
 ```
 
-Also, ensure that **Hotspot Configuration** capability is enabled for your iOS App Bundle ID in the Apple Developer Portal.
+#### iOS Capabilities & Entitlements:
+1. **Hotspot Configuration**:
+   - Open the iOS project (`ios/Runner.xcworkspace`) in Xcode.
+   - Select your project in the project navigator, then select your application target under **Targets**.
+   - Go to the **Signing & Capabilities** tab.
+   - Click **+ Capability** in the top left, search for **Hotspot Configuration**, and add it.
+   - *This capability is mandatory for `NEHotspotConfigurationManager` to function without permission errors.*
+2. **Access Wi-Fi Information** *(Optional/Recommended)*:
+   - If you need to access details about the current Wi-Fi network (such as the SSID), add the **Access Wi-Fi Information** capability in the **Signing & Capabilities** tab.
+</details>
 
 ---
 
