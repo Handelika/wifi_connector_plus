@@ -193,4 +193,8 @@ Contributions are welcome! If you find any bugs, have feature requests, or want 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Created and maintained by [handelika](https://github.com/handelika).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Third-party package dependencies are subject to their respective licenses. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+
+Created and maintained by [handelika](https://github.com/handelika).
