@@ -9,7 +9,8 @@ import '../wifi_qr_parser.dart';
 /// scans for a Wi-Fi QR code, and parses it into [WifiCredentials].
 class WifiQrScannerView extends StatefulWidget {
   /// Callback triggered when a valid Wi-Fi QR code is successfully scanned.
-  final ValueChanged<WifiCredentials> onScanSuccess;
+  /// Receives the parsed [WifiCredentials] and the original raw scanned QR string.
+  final void Function(WifiCredentials credentials, String rawValue) onScanSuccess;
 
   /// Callback triggered when permission is denied or a scanned QR code cannot be parsed.
   final ValueChanged<String> onError;
@@ -139,7 +140,6 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                     return const Icon(Icons.flash_on, color: Colors.yellow);
                   case TorchState.unavailable:
                   case TorchState.auto:
-                  default:
                     return const Icon(Icons.flash_off, color: Colors.grey);
                 }
               },
@@ -175,7 +175,7 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                     final credentials = WifiQrParser.parse(code);
                     if (credentials != null) {
                       _controller.stop();
-                      widget.onScanSuccess(credentials);
+                      widget.onScanSuccess(credentials, code);
                     } else {
                       developer.log(
                         'Scanned code is not a valid Wi-Fi configuration: $code',

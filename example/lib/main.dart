@@ -48,6 +48,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
 
   // Permission state
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
+  bool _fillFieldsOnScan = true;
 
   bool _isConnecting = false;
   String _statusMessage = 'Idle';
@@ -226,17 +227,17 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   Future<void> _scanAndConnect() async {
     developer.log('Launching scanner view...', name: 'WifiConnectorExample');
     try {
-      final result = await Navigator.push<WifiCredentials?>(
+      final result = await Navigator.push<(WifiCredentials, String)?>(
         context,
         MaterialPageRoute(
           builder: (context) => Scaffold(
             body: WifiQrScannerView(
-              onScanSuccess: (credentials) {
+              onScanSuccess: (credentials, rawValue) {
                 developer.log(
                   'QR Code scanned successfully for SSID: ${credentials.ssid}',
                   name: 'WifiConnectorExample',
                 );
-                Navigator.pop(context, credentials);
+                Navigator.pop(context, (credentials, rawValue));
               },
               onError: (error) {
                 developer.log(
@@ -253,25 +254,38 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       );
 
       if (result != null) {
+        final (credentials, rawValue) = result;
         if (!mounted) return;
-        developer.log(
-          'Setting scanned credentials to UI controller fields.',
-          name: 'WifiConnectorExample',
-        );
+
         setState(() {
-          _ssidController.text = result.ssid;
-          _passwordController.text = result.password ?? '';
-          _securityType = result.securityType;
-          _isHidden = result.isHidden;
+          _qrController.text = rawValue;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Loaded scanned credentials for "${result.ssid}"'),
-          ),
-        );
+        if (_fillFieldsOnScan) {
+          developer.log(
+            'Setting scanned credentials to UI controller fields.',
+            name: 'WifiConnectorExample',
+          );
+          setState(() {
+            _ssidController.text = credentials.ssid;
+            _passwordController.text = credentials.password ?? '';
+            _securityType = credentials.securityType;
+            _isHidden = credentials.isHidden;
+          });
 
-        _showConnectionOptionDialog(result);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Loaded scanned credentials for "${credentials.ssid}"'),
+            ),
+          );
+        } else {
+          developer.log(
+            'Scanned credentials parsed but not written to manual fields.',
+            name: 'WifiConnectorExample',
+          );
+        }
+
+        _showConnectionOptionDialog(credentials);
       }
     } catch (e, stackTrace) {
       developer.log(
@@ -300,8 +314,25 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Fill Fields Only'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('Fill Fields Only'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _ssidController.text = credentials.ssid;
+                  _passwordController.text = credentials.password ?? '';
+                  _securityType = credentials.securityType;
+                  _isHidden = credentials.isHidden;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Loaded scanned credentials for "${credentials.ssid}"'),
+                  ),
+                );
+              },
             ),
             TextButton(
               child: const Text('Connect Now'),
@@ -524,6 +555,20 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                         ).colorScheme.primaryContainer,
                         minimumSize: const Size.fromHeight(48),
                       ),
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Fill manual fields on QR scan'),
+                      value: _fillFieldsOnScan,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _fillFieldsOnScan = val;
+                          });
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
                     Row(

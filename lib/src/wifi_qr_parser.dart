@@ -2,7 +2,7 @@ import 'models/wifi_credentials.dart';
 
 class WifiQrParser {
   /// Parses a standard Wi-Fi QR code string.
-  /// Format: WIFI:S:<SSID>;T:<WEP|WPA|nopass>;P:<PASSWORD>;H:<true|false>;;
+  /// Format: `WIFI:S:<SSID>;T:<WEP|WPA|nopass>;P:<PASSWORD>;H:<true|false>;;`
   /// Returns [WifiCredentials] if valid, or `null` if the string cannot be parsed.
   static WifiCredentials? parse(String qrString) {
     final trimmed = qrString.trim();

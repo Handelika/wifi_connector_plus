@@ -121,7 +121,7 @@ class ScannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: WifiQrScannerView(
-        onScanSuccess: (WifiCredentials credentials) async {
+        onScanSuccess: (WifiCredentials credentials, String rawValue) async {
           // Triggered when a valid Wi-Fi QR code is scanned
           Navigator.pop(context);
           
@@ -144,3 +144,13 @@ class ScannerScreen extends StatelessWidget {
   }
 }
 ```
+
+---
+
+## Contributing
+
+Contributions are welcome! If you find any bugs, have feature requests, or want to improve the codebase, feel free to open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Created and maintained by [handelika](https://github.com/handelika).
