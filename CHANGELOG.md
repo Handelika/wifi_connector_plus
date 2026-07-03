@@ -6,6 +6,7 @@
 * Added customizable camera controls (toggle flashlight, switch camera direction) to `WifiQrScannerView`.
 * Upgraded `permission_handler` dependency to `^12.0.3`.
 * Upgraded Qr Scanner Camera view for better performance and user experience.
+* Fixed `WifiQrScannerView` to resume camera scanning when connection fails, and verified scanner controller disposal on unmounting.
 
 
 ## 0.0.3

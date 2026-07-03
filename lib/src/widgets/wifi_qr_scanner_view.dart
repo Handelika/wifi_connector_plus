@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -22,7 +23,8 @@ enum CameraOption {
 class WifiQrScannerView extends StatefulWidget {
   /// Callback triggered when a valid Wi-Fi QR code is successfully scanned.
   /// Receives the parsed [WifiCredentials] and the original raw scanned QR string.
-  final void Function(WifiCredentials credentials, String rawValue)
+  /// If it returns a [Future] that resolves to `false`, or a boolean `false`, the camera scanning will resume.
+  final FutureOr<dynamic> Function(WifiCredentials credentials, String rawValue)
   onScanSuccess;
 
   /// Callback triggered when permission is denied or a scanned QR code cannot be parsed.
@@ -262,10 +264,21 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
 
                       if (credentials != null) {
                         _controller.stop();
-                        widget.onScanSuccess(
+                        final result = widget.onScanSuccess(
                           credentials,
                           barcode.rawValue ?? '',
                         );
+                        if (result is Future) {
+                          result.then((res) {
+                            if (mounted && res == false) {
+                              _controller.start();
+                            }
+                          });
+                        } else if (result == false) {
+                          if (mounted) {
+                            _controller.start();
+                          }
+                        }
                       } else {
                         developer.log(
                           'Scanned code is not a valid Wi-Fi configuration: ${barcode.rawValue}',
