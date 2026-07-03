@@ -1,6 +1,6 @@
 name: wifi_connector_plus
 description: A Flutter plugin to scan Wi-Fi QR codes, parse configurations, and connect to Wi-Fi networks on Android and iOS.
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/Handelika/wifi_connector_plus
 repository: https://github.com/Handelika/wifi_connector_plus
 issue_tracker: https://github.com/Handelika/wifi_connector_plus/issues
@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.1.8
-  permission_handler: ^11.4.0
+  permission_handler: ^12.0.3
   mobile_scanner: ^7.2.0
 
 dev_dependencies:

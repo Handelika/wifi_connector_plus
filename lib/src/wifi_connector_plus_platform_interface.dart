@@ -35,4 +35,8 @@ abstract class WifiConnectorPlusPlatform extends PlatformInterface {
   ) {
     throw UnimplementedError('connect() has not been implemented.');
   }
+
+  Future<String?> getCurrentSsid() {
+    throw UnimplementedError('getCurrentSsid() has not been implemented.');
+  }
 }

@@ -15,6 +15,8 @@ void main() {
             return '42';
           } else if (methodCall.method == 'connect') {
             return true;
+          } else if (methodCall.method == 'getCurrentSsid') {
+            return 'MockSSID';
           }
           return null;
         });
@@ -31,5 +33,9 @@ void main() {
 
   test('connect', () async {
     expect(await platform.connect('Ssid', 'Pass', 'WPA', false), isTrue);
+  });
+
+  test('getCurrentSsid', () async {
+    expect(await platform.getCurrentSsid(), 'MockSSID');
   });
 }

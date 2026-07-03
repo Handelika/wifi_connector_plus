@@ -119,7 +119,42 @@ class WifiConnectorPlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val isHidden = call.argument<Boolean>("isHidden") ?: false
                 connectToWifi(ssid, password, securityType, isHidden, result)
             }
+            "getCurrentSsid" -> {
+                getCurrentSsid(result)
+            }
             else -> result.notImplemented()
+        }
+    }
+
+    private fun getCurrentSsid(result: Result) {
+        try {
+            val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            var ssid: String? = null
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork
+                val capabilities = connectivityManager.getNetworkCapabilities(network)
+                if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    val wifiInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        capabilities.transportInfo as? android.net.wifi.WifiInfo
+                    } else null
+                    @Suppress("DEPRECATION")
+                    ssid = (wifiInfo?.ssid ?: wifiManager.connectionInfo?.ssid)?.replace("\"", "")
+                }
+            }
+
+            if (ssid == null || ssid == "<unknown ssid>") {
+                @Suppress("DEPRECATION")
+                ssid = wifiManager.connectionInfo?.ssid?.replace("\"", "")
+            }
+
+            if (ssid == "<unknown ssid>") {
+                ssid = null
+            }
+            result.success(ssid)
+        } catch (e: Exception) {
+            result.error("GET_SSID_FAILED", "Failed to retrieve current SSID: ${e.localizedMessage}", null)
         }
     }
 

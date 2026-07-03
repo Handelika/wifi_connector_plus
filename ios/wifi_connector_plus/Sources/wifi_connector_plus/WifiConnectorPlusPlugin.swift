@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import NetworkExtension
+import SystemConfiguration.CaptiveNetwork
 
 public class WifiConnectorPlusPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -24,8 +25,37 @@ public class WifiConnectorPlusPlugin: NSObject, FlutterPlugin {
       let isHidden = args["isHidden"] as? Bool ?? false
       
       connectToWifi(ssid: ssid, password: password, securityType: securityType, isHidden: isHidden, result: result)
+    case "getCurrentSsid":
+      getCurrentSsid(result: result)
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func getCurrentSsid(result: @escaping FlutterResult) {
+    if #available(iOS 14.0, *) {
+      NEHotspotNetwork.fetchCurrent { hotspotNetwork in
+        if let network = hotspotNetwork {
+          result(network.ssid)
+        } else {
+          result(nil)
+        }
+      }
+    } else {
+      #if targetEnvironment(simulator)
+      result(nil)
+      #else
+      var ssid: String? = nil
+      if let interfaces = CNCopySupportedInterfaces() as? [String] {
+        for interface in interfaces {
+          if let interfaceInfo = CNCopyCurrentNetworkInfo(interface as CFString) as? [String: AnyObject] {
+            ssid = interfaceInfo[kCNNetworkInfoKeySSID as String] as? String
+            break
+          }
+        }
+      }
+      result(ssid)
+      #endif
     }
   }
 

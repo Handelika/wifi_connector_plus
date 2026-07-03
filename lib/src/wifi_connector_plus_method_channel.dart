@@ -41,4 +41,18 @@ class MethodChannelWifiConnectorPlus extends WifiConnectorPlusPlatform {
       );
     }
   }
+
+  @override
+  Future<String?> getCurrentSsid() async {
+    try {
+      final result = await methodChannel.invokeMethod<String>('getCurrentSsid');
+      return result;
+    } on PlatformException catch (e) {
+      throw PlatformException(
+        code: e.code,
+        message: e.message ?? 'Unknown error getting current SSID',
+        details: e.details,
+      );
+    }
+  }
 }

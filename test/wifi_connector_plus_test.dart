@@ -9,6 +9,7 @@ class MockWifiConnectorPlusPlatform
     with MockPlatformInterfaceMixin
     implements WifiConnectorPlusPlatform {
   bool shouldThrowInvalidCredentials = false;
+  String? mockCurrentSsid;
 
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
@@ -28,6 +29,9 @@ class MockWifiConnectorPlusPlatform
     }
     return Future.value(ssid == 'ValidSSID' && password == 'ValidPassword');
   }
+
+  @override
+  Future<String?> getCurrentSsid() => Future.value(mockCurrentSsid);
 }
 
 void main() {
@@ -60,6 +64,17 @@ void main() {
       );
       expect(result.isSuccess, isTrue);
       expect(result.error, isNull);
+    });
+
+    test('connect manual - failure when connected to a different SSID', () async {
+      fakePlatform.mockCurrentSsid = 'DifferentSSID';
+      final result = await wifiConnector.connect(
+        ssid: 'ValidSSID',
+        password: 'ValidPassword',
+        securityType: WifiSecurityType.wpa,
+      );
+      expect(result.isSuccess, isFalse);
+      expect(result.message, contains('Connected to a different network'));
     });
 
     test('connect manual - failure', () async {

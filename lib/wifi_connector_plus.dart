@@ -8,6 +8,7 @@ import 'src/wifi_qr_parser.dart';
 
 export 'src/models/wifi_connect_result.dart';
 export 'src/models/wifi_credentials.dart';
+export 'src/models/wifi_scanner_language.dart';
 export 'src/wifi_qr_parser.dart';
 export 'src/widgets/wifi_qr_scanner_view.dart';
 
@@ -65,6 +66,24 @@ class WifiConnectorPlus {
       );
 
       if (success) {
+        // Confirm that the currently connected SSID matches the requested one.
+        // We check up to 3 times with a small delay to allow OS states to stabilize.
+        // We only fail if we get a non-null SSID that is different from requested.
+        // If we get null (due to permission restrictions or emulator), we treat it as success.
+        String? currentSsid;
+        for (int i = 0; i < 3; i++) {
+          currentSsid = await getCurrentSsid();
+          if (currentSsid == ssid) break;
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+
+        if (currentSsid != null && currentSsid != ssid) {
+          return WifiConnectResult.failure(
+            message: 'Connected to a different network: $currentSsid (expected $ssid)',
+            error: WifiConnectError.unknown,
+          );
+        }
+
         return WifiConnectResult.success(
           message: 'Successfully connected to $ssid',
         );
@@ -127,5 +146,12 @@ class WifiConnectorPlus {
   /// Returns null if the format is invalid.
   WifiCredentials? parseWifiQr(String qrString) {
     return WifiQrParser.parse(qrString);
+  }
+
+  /// Gets the currently connected Wi-Fi network's SSID.
+  ///
+  /// Returns `null` if not connected or if location permission is not granted.
+  Future<String?> getCurrentSsid() async {
+    return WifiConnectorPlusPlatform.instance.getCurrentSsid();
   }
 }

@@ -4,7 +4,7 @@
 [![pub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 
-Current stable release: `0.0.3`
+Current stable release: `0.0.4`
 
 A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings, and connect directly to Wi-Fi networks.
 
@@ -159,6 +159,26 @@ class ScannerScreen extends StatelessWidget {
     );
   }
 }
+```
+
+#### Scanner Customization Options
+
+You can customize `WifiQrScannerView` with additional layout, camera option configuration, and language settings:
+
+```dart
+WifiQrScannerView(
+  // Configure whether to show or hide the camera controls overlay (torch and flip button)
+  cameraOption: CameraOption.show, // Or CameraOption.hide
+  
+  // Set language preference for warning and error alerts/messages
+  language: WifiScannerLanguage.english, // Or WifiScannerLanguage.turkish
+  
+  // Instruction text shown overlaying the bottom portion of the camera feed
+  instructionText: 'Align QR code within the frame to connect',
+  
+  onScanSuccess: (credentials, rawValue) { ... },
+  onError: (error) { ... },
+)
 ```
 
 ### 4. Checking and Requesting Location Permissions

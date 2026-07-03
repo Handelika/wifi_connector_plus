@@ -72,6 +72,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   bool _isConnecting = false;
   String _statusMessage = 'Idle';
   bool _lastConnectionSuccess = false;
+  String? _currentSsid;
 
   @override
   void initState() {
@@ -79,7 +80,19 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     _parseCurrentQr();
     _qrController.addListener(_parseCurrentQr);
     _checkCameraPermission();
-    _requestLocationPermissionOnStartup();
+    _requestLocationPermissionOnStartup().then((_) => _updateCurrentSsid());
+  }
+
+  /// Updates the currently connected Wi-Fi network's SSID.
+  Future<void> _updateCurrentSsid() async {
+    try {
+      final ssid = await _wifiConnector.getCurrentSsid();
+      setState(() {
+        _currentSsid = ssid;
+      });
+    } catch (e) {
+      developer.log('Failed to get current SSID: $e', name: 'WifiConnectorExample');
+    }
   }
 
   /// Requests location permission when the app starts.
@@ -340,6 +353,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _statusMessage = result.message;
       });
 
+      await _updateCurrentSsid();
+
       if (!result.isSuccess &&
           result.error == WifiConnectError.permissionDenied) {
         _showLocationSettingsDialog(isPreciseRequired: true);
@@ -361,6 +376,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _lastConnectionSuccess = false;
         _statusMessage = 'Connection failed: $e';
       });
+      await _updateCurrentSsid();
     }
   }
 
@@ -387,30 +403,73 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   Future<void> _scanAndConnect() async {
     developer.log('Launching scanner view...', name: 'WifiConnectorExample');
     try {
-      final result = await Navigator.push<(WifiCredentials, String)?>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Scaffold(
-            body: WifiQrScannerView(
-              onScanSuccess: (credentials, rawValue) {
-                developer.log(
-                  'QR Code scanned successfully for SSID: ${credentials.ssid}',
-                  name: 'WifiConnectorExample',
-                );
-                Navigator.pop(context, (credentials, rawValue));
-              },
-              onError: (error) {
-                developer.log(
-                  'QR Scanner encountered error: $error',
-                  name: 'WifiConnectorExample',
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  _buildCustomSnackBar('Scanner Error: $error', isError: true),
-                );
-              },
+      final result = await showDialog<(WifiCredentials, String)?>(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: const Color(0xFF1E293B),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: Color(0xFF334155)),
             ),
-          ),
-        ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox(
+                width: 320,
+                height: 420,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      color: const Color(0xFF0F172A),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Scan Wi-Fi QR Code',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white70),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: WifiQrScannerView(
+                          onScanSuccess: (credentials, rawValue) {
+                            developer.log(
+                              'QR Code scanned successfully for SSID: ${credentials.ssid}',
+                              name: 'WifiConnectorExample',
+                            );
+                            Navigator.pop(context, (credentials, rawValue));
+                          },
+                          onError: (error) {
+                            developer.log(
+                              'QR Scanner encountered error: $error',
+                              name: 'WifiConnectorExample',
+                            );
+                            Navigator.pop(context); // close dialog
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              _buildCustomSnackBar('Scanner Error: $error', isError: true),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       );
 
       if (result != null) {
@@ -883,6 +942,27 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                                 fontSize: 14,
                               ),
                             ),
+                            if (_currentSsid != null && _currentSsid!.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.wifi,
+                                    size: 14,
+                                    color: statusTextGradientColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Active SSID: $_currentSsid',
+                                    style: TextStyle(
+                                      color: statusTextGradientColor.withOpacity(0.85),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
