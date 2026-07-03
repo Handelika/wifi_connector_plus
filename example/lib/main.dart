@@ -91,7 +91,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         _currentSsid = ssid;
       });
     } catch (e) {
-      developer.log('Failed to get current SSID: $e', name: 'WifiConnectorExample');
+      developer.log(
+        'Failed to get current SSID: $e',
+        name: 'WifiConnectorExample',
+      );
     }
   }
 
@@ -420,7 +423,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       color: const Color(0xFF0F172A),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -434,7 +440,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white70),
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.white70,
+                            ),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],
@@ -458,7 +467,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                             );
                             Navigator.pop(context); // close dialog
                             ScaffoldMessenger.of(context).showSnackBar(
-                              _buildCustomSnackBar('Scanner Error: $error', isError: true),
+                              _buildCustomSnackBar(
+                                'Scanner Error: $error',
+                                isError: true,
+                              ),
                             );
                           },
                         ),
@@ -942,7 +954,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                                 fontSize: 14,
                               ),
                             ),
-                            if (_currentSsid != null && _currentSsid!.isNotEmpty) ...[
+                            if (_currentSsid != null &&
+                                _currentSsid!.isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Row(
                                 children: [
@@ -955,7 +968,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                                   Text(
                                     'Active SSID: $_currentSsid',
                                     style: TextStyle(
-                                      color: statusTextGradientColor.withOpacity(0.85),
+                                      color: statusTextGradientColor
+                                          .withOpacity(0.85),
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),

@@ -66,16 +66,19 @@ void main() {
       expect(result.error, isNull);
     });
 
-    test('connect manual - failure when connected to a different SSID', () async {
-      fakePlatform.mockCurrentSsid = 'DifferentSSID';
-      final result = await wifiConnector.connect(
-        ssid: 'ValidSSID',
-        password: 'ValidPassword',
-        securityType: WifiSecurityType.wpa,
-      );
-      expect(result.isSuccess, isFalse);
-      expect(result.message, contains('Connected to a different network'));
-    });
+    test(
+      'connect manual - failure when connected to a different SSID',
+      () async {
+        fakePlatform.mockCurrentSsid = 'DifferentSSID';
+        final result = await wifiConnector.connect(
+          ssid: 'ValidSSID',
+          password: 'ValidPassword',
+          securityType: WifiSecurityType.wpa,
+        );
+        expect(result.isSuccess, isFalse);
+        expect(result.message, contains('Connected to a different network'));
+      },
+    );
 
     test('connect manual - failure', () async {
       final result = await wifiConnector.connect(

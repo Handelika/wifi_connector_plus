@@ -79,7 +79,8 @@ class WifiConnectorPlus {
 
         if (currentSsid != null && currentSsid != ssid) {
           return WifiConnectResult.failure(
-            message: 'Connected to a different network: $currentSsid (expected $ssid)',
+            message:
+                'Connected to a different network: $currentSsid (expected $ssid)',
             error: WifiConnectError.unknown,
           );
         }
