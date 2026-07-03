@@ -1,3 +1,13 @@
+## 0.0.4
+
+* Added `getCurrentSsid()` API to retrieve the currently connected Wi-Fi network's SSID on Android and iOS.
+* Improved connection validation by checking the active SSID post-connection to prevent false success states when connection fails.
+* Added multi-language support (English and Turkish) to `WifiQrScannerView` via `WifiScannerLanguage`.
+* Added customizable camera controls (toggle flashlight, switch camera direction) to `WifiQrScannerView`.
+* Upgraded `permission_handler` dependency to `^12.0.3`.
+* Upgraded Qr Scanner Camera view for better performance and user experience.
+
+
 ## 0.0.3
 
 * Updated dependencies:
