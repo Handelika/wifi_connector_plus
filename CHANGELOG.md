@@ -1,3 +1,10 @@
+## 0.0.3
+
+* Updated dependencies:
+  * Upgraded `permission_handler` to `^11.4.0`.
+  * Upgraded `plugin_platform_interface` to `^2.1.8`.
+* Refactored the example app to remove redundant location permission checking logic, utilizing the plugin's internal check and request flow.
+
 ## 0.0.2
 
 ### Android
