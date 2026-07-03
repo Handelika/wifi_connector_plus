@@ -968,8 +968,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                                   Text(
                                     'Active SSID: $_currentSsid',
                                     style: TextStyle(
-                                      color: statusTextGradientColor
-                                          .withOpacity(0.85),
+                                      color: statusTextGradientColor.withValues(
+                                        alpha: 0.85,
+                                      ),
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
