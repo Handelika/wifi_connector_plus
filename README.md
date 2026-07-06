@@ -174,15 +174,12 @@ class ScannerScreen extends StatelessWidget {
 
 #### Scanner Customization Options
 
-You can customize `WifiQrScannerView` with additional layout, camera option configuration, and language settings:
+You can customize `WifiQrScannerView` with additional layout and camera option configuration:
 
 ```dart
 WifiQrScannerView(
   // Configure whether to show or hide the camera controls overlay (torch and flip button)
   cameraOption: CameraOption.show, // Or CameraOption.hide
-  
-  // Set language preference for warning and error alerts/messages
-  language: WifiScannerLanguage.english, // Or WifiScannerLanguage.turkish
   
   // Instruction text shown overlaying the bottom portion of the camera feed
   instructionText: 'Align QR code within the frame to connect',

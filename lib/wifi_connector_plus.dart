@@ -8,7 +8,6 @@ import 'src/wifi_qr_parser.dart';
 
 export 'src/models/wifi_connect_result.dart';
 export 'src/models/wifi_credentials.dart';
-export 'src/models/wifi_scanner_language.dart';
 export 'src/wifi_qr_parser.dart';
 export 'src/widgets/wifi_qr_scanner_view.dart';
 

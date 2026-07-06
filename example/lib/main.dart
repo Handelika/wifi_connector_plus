@@ -196,7 +196,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     bool isHidden = false,
   }) async {
     if (ssid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an SSID')));
+      debugPrint('Please enter an SSID');
       return;
     }
 
@@ -258,7 +258,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
               SizedBox(
                 height: 300,
                 child: WifiQrScannerView(
-                  language: WifiScannerLanguage.english,
                   onScanSuccess: (cred, raw) => Navigator.pop(context, (cred, raw)),
                   onError: (err) => Navigator.pop(context),
                 ),

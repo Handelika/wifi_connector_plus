@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/wifi_credentials.dart';
-import '../models/wifi_scanner_language.dart';
 import '../wifi_qr_parser.dart';
 
 /// A self-contained widget that handles camera permissions, opens the camera stream,
@@ -43,9 +42,6 @@ class WifiQrScannerView extends StatefulWidget {
   /// If null or empty, the overlay text container is hidden.
   final String? instructionText;
 
-  /// Language used for warning and error alerts/messages.
-  final WifiScannerLanguage language;
-
   const WifiQrScannerView({
     super.key,
     required this.onScanSuccess,
@@ -54,7 +50,6 @@ class WifiQrScannerView extends StatefulWidget {
     this.permissionDeniedPlaceholder,
     this.cameraOption = CameraOption.show,
     this.instructionText,
-    this.language = WifiScannerLanguage.english,
   });
 
   @override
@@ -82,39 +77,27 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
   }
 
   String get _permissionDeniedErrorText {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'Kamera izni reddedildi.'
-        : 'Camera permission denied.';
+    return 'Camera permission denied.';
   }
 
   String _permissionRequestFailedText(Object e) {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'Kamera izni talebi başarısız oldu: $e'
-        : 'Camera permission request failed: $e';
+    return 'Camera permission request failed: $e';
   }
 
   String get _permissionRequiredTitle {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'QR kodları taramak için kamera izni gereklidir.'
-        : 'Camera permission is required to scan QR codes.';
+    return 'Camera permission is required to scan QR codes.';
   }
 
   String get _grantPermissionBtnText {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'Kamera İzni Ver'
-        : 'Grant Camera Permission';
+    return 'Grant Camera Permission';
   }
 
   String get _invalidQrErrorText {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'Geçersiz Wi-Fi QR Kodu formatı'
-        : 'Invalid Wi-Fi QR Code format';
+    return 'Invalid Wi-Fi QR Code format';
   }
 
   String _errorReadingQrText(Object e) {
-    return widget.language == WifiScannerLanguage.turkish
-        ? 'QR kodu okunurken hata oluştu: $e'
-        : 'Error reading QR code: $e';
+    return 'Error reading QR code: $e';
   }
 
   Future<void> _checkPermission() async {
