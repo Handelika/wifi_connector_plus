@@ -64,8 +64,7 @@ class WifiConnectorPlus {
       //
       //   Android 10+ : ACTION_WIFI_ADD_NETWORKS + NetworkCallback
       //   Android <10 : WifiManager legacy + polling
-      final nativeResult =
-          await WifiConnectorPlusPlatform.instance.connect(
+      final nativeResult = await WifiConnectorPlusPlatform.instance.connect(
         ssid,
         password,
         securityType.valueString,
@@ -73,9 +72,7 @@ class WifiConnectorPlus {
       );
 
       if (nativeResult == 'ALREADY_CONNECTED') {
-        return WifiConnectResult.success(
-          message: 'Already connected to $ssid',
-        );
+        return WifiConnectResult.success(message: 'Already connected to $ssid');
       }
 
       if (nativeResult == true) {
@@ -85,7 +82,8 @@ class WifiConnectorPlus {
       }
 
       return WifiConnectResult.failure(
-        message: 'Failed to connect to $ssid. Check credentials or network state.',
+        message:
+            'Failed to connect to $ssid. Check credentials or network state.',
         error: WifiConnectError.unknown,
       );
     } on PlatformException catch (e) {

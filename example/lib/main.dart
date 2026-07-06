@@ -50,13 +50,18 @@ class MyApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFF00F2FE), width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
           labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ),
@@ -104,7 +109,8 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       (ssid) {
         if (mounted) setState(() => _currentSsid = ssid);
       },
-      onError: (e) => developer.log('SSID stream error: $e', name: 'WifiConnectorPlus'),
+      onError: (e) =>
+          developer.log('SSID stream error: $e', name: 'WifiConnectorPlus'),
     );
   }
 
@@ -113,7 +119,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       final ssid = await _wifiConnector.getCurrentSsid();
       setState(() => _currentSsid = ssid);
     } catch (e) {
-      developer.log('Failed to get current SSID: $e', name: 'WifiConnectorPlus');
+      developer.log(
+        'Failed to get current SSID: $e',
+        name: 'WifiConnectorPlus',
+      );
     }
   }
 
@@ -121,10 +130,16 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     try {
       final granted = await _wifiConnector.requestLocationPermission();
       if (!granted) {
-        setState(() => _statusMessage = 'Location permission is required for Wi-Fi connection.');
+        setState(
+          () => _statusMessage =
+              'Location permission is required for Wi-Fi connection.',
+        );
       }
     } catch (e) {
-      setState(() => _statusMessage = 'Error requesting location permission on startup: $e');
+      setState(
+        () => _statusMessage =
+            'Error requesting location permission on startup: $e',
+      );
     }
   }
 
@@ -138,7 +153,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
     super.dispose();
   }
 
-
   Future<void> _requestAndScanQr() async {
     try {
       final status = await Permission.camera.status;
@@ -146,19 +160,27 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         await _scanAndConnect();
       } else if (status.isPermanentlyDenied) {
         setState(() {
-          _statusMessage = 'Camera permission permanently denied. Enable in Settings.';
+          _statusMessage =
+              'Camera permission permanently denied. Enable in Settings.';
         });
-        _showSettingsDialog('Camera Permission Required', 'Camera permission is required to scan QR codes.');
+        _showSettingsDialog(
+          'Camera Permission Required',
+          'Camera permission is required to scan QR codes.',
+        );
       } else {
         final result = await Permission.camera.request();
         if (result.isGranted) {
           await _scanAndConnect();
         } else {
-          setState(() => _statusMessage = 'Camera permission denied. Cannot scan QR.');
+          setState(
+            () => _statusMessage = 'Camera permission denied. Cannot scan QR.',
+          );
         }
       }
     } catch (e) {
-      setState(() => _statusMessage = 'Camera permission request exception: $e');
+      setState(
+        () => _statusMessage = 'Camera permission request exception: $e',
+      );
     }
   }
 
@@ -186,7 +208,9 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   }
 
   void _parseCurrentQr() {
-    setState(() => _parsedCredentials = _wifiConnector.parseWifiQr(_qrController.text));
+    setState(
+      () => _parsedCredentials = _wifiConnector.parseWifiQr(_qrController.text),
+    );
   }
 
   Future<void> _connect({
@@ -226,7 +250,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
 
       if (!result.isSuccess) {
         if (result.error == WifiConnectError.permissionDenied) {
-          _showSettingsDialog('Location Required', 'Location permission is required to scan/connect.');
+          _showSettingsDialog(
+            'Location Required',
+            'Location permission is required to scan/connect.',
+          );
         } else if (result.error == WifiConnectError.userCancelled) {
           setState(() => _statusMessage = 'Connection cancelled by user.');
         }
@@ -253,12 +280,18 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
               AppBar(
                 title: const Text('Scan QR Code'),
                 automaticallyImplyLeading: false,
-                actions: [IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context))],
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
               SizedBox(
                 height: 300,
                 child: WifiQrScannerView(
-                  onScanSuccess: (cred, raw) => Navigator.pop(context, (cred, raw)),
+                  onScanSuccess: (cred, raw) =>
+                      Navigator.pop(context, (cred, raw)),
                   onError: (err) => Navigator.pop(context),
                 ),
               ),
@@ -291,9 +324,14 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Wi-Fi QR Scanned'),
-        content: Text('SSID: ${credentials.ssid}\nSecurity: ${credentials.securityType.name.toUpperCase()}\n\nConnect now?'),
+        content: Text(
+          'SSID: ${credentials.ssid}\nSecurity: ${credentials.securityType.name.toUpperCase()}\n\nConnect now?',
+        ),
         actions: [
-          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(context).pop()),
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           ElevatedButton(
             child: const Text('Connect Now'),
             onPressed: () {
@@ -315,7 +353,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wi-Fi Connector Plus', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Wi-Fi Connector Plus',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF0F172A),
       ),
       body: SingleChildScrollView(
@@ -327,17 +368,32 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
               color: const Color(0xFF1E293B),
               child: ListTile(
                 leading: _isConnecting
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : Icon(
-                        _lastConnectionSuccess ? Icons.check_circle : Icons.info,
-                        color: _lastConnectionSuccess ? Colors.green : Colors.cyan,
+                        _lastConnectionSuccess
+                            ? Icons.check_circle
+                            : Icons.info,
+                        color: _lastConnectionSuccess
+                            ? Colors.green
+                            : Colors.cyan,
                       ),
                 title: Text(
-                  _isConnecting ? 'CONNECTING' : (_lastConnectionSuccess ? 'CONNECTED' : 'STATUS'),
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  _isConnecting
+                      ? 'CONNECTING'
+                      : (_lastConnectionSuccess ? 'CONNECTED' : 'STATUS'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 subtitle: Text(_statusMessage),
-                trailing: _currentSsid != null ? Chip(label: Text(_currentSsid!)) : null,
+                trailing: _currentSsid != null
+                    ? Chip(label: Text(_currentSsid!))
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
@@ -350,11 +406,26 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('How to Connect to Wi-Fi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'How to Connect to Wi-Fi',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const Divider(),
-                    _buildStepRow('1', 'Grant location & camera permissions if asked.'),
-                    _buildStepRow('2', 'Scan a Wi-Fi QR code or use the manual connection form.'),
-                    _buildStepRow('3', 'Confirm the system prompt to join the network.'),
+                    _buildStepRow(
+                      '1',
+                      'Grant location & camera permissions if asked.',
+                    ),
+                    _buildStepRow(
+                      '2',
+                      'Scan a Wi-Fi QR code or use the manual connection form.',
+                    ),
+                    _buildStepRow(
+                      '3',
+                      'Confirm the system prompt to join the network.',
+                    ),
                   ],
                 ),
               ),
@@ -365,9 +436,15 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00F2FE), foregroundColor: Colors.black),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00F2FE),
+                  foregroundColor: Colors.black,
+                ),
                 icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Scan Wi-Fi QR Code', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Scan Wi-Fi QR Code',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 onPressed: !_isConnecting ? _requestAndScanQr : null,
               ),
             ),
@@ -382,7 +459,10 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                   children: [
                     TextField(
                       controller: _qrController,
-                      decoration: const InputDecoration(labelText: 'Raw QR String', hintText: 'WIFI:S:SSID;T:WPA;P:Password;;'),
+                      decoration: const InputDecoration(
+                        labelText: 'Raw QR String',
+                        hintText: 'WIFI:S:SSID;T:WPA;P:Password;;',
+                      ),
                       maxLines: 2,
                     ),
                     if (_parsedCredentials != null) ...[
@@ -397,12 +477,17 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.copy, color: Color(0xFF00F2FE)),
+                            icon: const Icon(
+                              Icons.copy,
+                              color: Color(0xFF00F2FE),
+                            ),
                             onPressed: () {
                               setState(() {
                                 _ssidController.text = _parsedCredentials!.ssid;
-                                _passwordController.text = _parsedCredentials!.password ?? '';
-                                _securityType = _parsedCredentials!.securityType;
+                                _passwordController.text =
+                                    _parsedCredentials!.password ?? '';
+                                _securityType =
+                                    _parsedCredentials!.securityType;
                                 _isHidden = _parsedCredentials!.isHidden;
                               });
                             },
@@ -411,9 +496,13 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       ),
                     ],
                     SwitchListTile(
-                      title: const Text('Autofill form fields on scan', style: TextStyle(fontSize: 13)),
+                      title: const Text(
+                        'Autofill form fields on scan',
+                        style: TextStyle(fontSize: 13),
+                      ),
                       value: _fillFieldsOnScan,
-                      onChanged: (val) => setState(() => _fillFieldsOnScan = val),
+                      onChanged: (val) =>
+                          setState(() => _fillFieldsOnScan = val),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
@@ -421,11 +510,11 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       child: ElevatedButton(
                         onPressed: _parsedCredentials != null && !_isConnecting
                             ? () => _connect(
-                                  ssid: _parsedCredentials!.ssid,
-                                  password: _parsedCredentials!.password,
-                                  securityType: _parsedCredentials!.securityType,
-                                  isHidden: _parsedCredentials!.isHidden,
-                                )
+                                ssid: _parsedCredentials!.ssid,
+                                password: _parsedCredentials!.password,
+                                securityType: _parsedCredentials!.securityType,
+                                isHidden: _parsedCredentials!.isHidden,
+                              )
                             : null,
                         child: const Text('Connect QR Credentials'),
                       ),
@@ -443,11 +532,19 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Text('Manual Connection', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Manual Connection',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _ssidController,
-                      decoration: const InputDecoration(labelText: 'SSID (Network Name)'),
+                      decoration: const InputDecoration(
+                        labelText: 'SSID (Network Name)',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
@@ -456,24 +553,38 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<WifiSecurityType>(
                       initialValue: _securityType,
-                      decoration: const InputDecoration(labelText: 'Security Type'),
+                      decoration: const InputDecoration(
+                        labelText: 'Security Type',
+                      ),
                       items: WifiSecurityType.values.map((type) {
-                        return DropdownMenuItem(value: type, child: Text(type.name.toUpperCase()));
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(type.name.toUpperCase()),
+                        );
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _securityType = val);
                       },
                     ),
                     SwitchListTile(
-                      title: const Text('Is Hidden Network?', style: TextStyle(fontSize: 13)),
+                      title: const Text(
+                        'Is Hidden Network?',
+                        style: TextStyle(fontSize: 13),
+                      ),
                       value: _isHidden,
                       onChanged: (val) => setState(() => _isHidden = val),
                     ),
@@ -481,16 +592,24 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4FACFE), foregroundColor: Colors.black),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4FACFE),
+                          foregroundColor: Colors.black,
+                        ),
                         onPressed: !_isConnecting
                             ? () => _connect(
-                                  ssid: _ssidController.text.trim(),
-                                  password: _passwordController.text.isEmpty ? null : _passwordController.text,
-                                  securityType: _securityType,
-                                  isHidden: _isHidden,
-                                )
+                                ssid: _ssidController.text.trim(),
+                                password: _passwordController.text.isEmpty
+                                    ? null
+                                    : _passwordController.text,
+                                securityType: _securityType,
+                                isHidden: _isHidden,
+                              )
                             : null,
-                        child: const Text('Connect Manually', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Connect Manually',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],
@@ -509,7 +628,14 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(radius: 10, backgroundColor: const Color(0xFF00F2FE), child: Text(num, style: const TextStyle(fontSize: 10, color: Colors.black))),
+          CircleAvatar(
+            radius: 10,
+            backgroundColor: const Color(0xFF00F2FE),
+            child: Text(
+              num,
+              style: const TextStyle(fontSize: 10, color: Colors.black),
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],

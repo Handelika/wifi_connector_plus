@@ -65,9 +65,8 @@ class MethodChannelWifiConnectorPlus extends WifiConnectorPlusPlatform {
 
   @override
   Stream<String?> get ssidStream {
-    return eventChannel
-        .receiveBroadcastStream()
-        .map((event) => event as String?);
+    return eventChannel.receiveBroadcastStream().map(
+      (event) => event as String?,
+    );
   }
 }
-
