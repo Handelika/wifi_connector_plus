@@ -1,5 +1,6 @@
 ## 0.0.5
 
+* Removed the `language` property from `WifiQrScannerView` and deleted the `WifiScannerLanguage` model, defaulting all warning and error messages to English.
 * Added `ssidStream` API to listen for Wi-Fi SSID updates.
   * On iOS, uses `NWPathMonitor` to detect path changes and fetch the active SSID.
   * Added `wifi_connector_plus/ssid_stream` event channel.
