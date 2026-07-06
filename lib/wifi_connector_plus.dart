@@ -54,47 +54,41 @@ class WifiConnectorPlus {
       );
     }
 
-    // Android 10+ (WifiNetworkSpecifier): Location permission gerekmez.
-    // Android 9 ve altı için opsiyonel — native tarafında zaten kontrol ediliyor.
-
     try {
-      final success = await WifiConnectorPlusPlatform.instance.connect(
+      // Native layer handles the full connection flow and fires the result
+      // only after the attempt completes (event-driven, not polled):
+      //
+      //   iOS   : NEHotspotConfigurationManager.apply() callback
+      //             → true             : joined successfully
+      //             → "ALREADY_CONNECTED" : already on this SSID
+      //             → FlutterError     : failed (wrong password, out of range…)
+      //
+      //   Android 10+ : ACTION_WIFI_ADD_NETWORKS + NetworkCallback
+      //   Android <10 : WifiManager legacy + polling
+      final nativeResult =
+          await WifiConnectorPlusPlatform.instance.connect(
         ssid,
         password,
         securityType.valueString,
         isHidden,
       );
 
-      if (success) {
-        // Confirm that the currently connected SSID matches the requested one.
-        // We check up to 3 times with a small delay to allow OS states to stabilize.
-        // We only fail if we get a non-null SSID that is different from requested.
-        // If we get null (due to permission restrictions or emulator), we treat it as success.
-        String? currentSsid;
-        for (int i = 0; i < 3; i++) {
-          currentSsid = await getCurrentSsid();
-          if (currentSsid == ssid) break;
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
+      if (nativeResult == 'ALREADY_CONNECTED') {
+        return WifiConnectResult.success(
+          message: 'Already connected to $ssid',
+        );
+      }
 
-        if (currentSsid != null && currentSsid != ssid) {
-          return WifiConnectResult.failure(
-            message:
-                'Connected to a different network: $currentSsid (expected $ssid)',
-            error: WifiConnectError.unknown,
-          );
-        }
-
+      if (nativeResult == true) {
         return WifiConnectResult.success(
           message: 'Successfully connected to $ssid',
         );
-      } else {
-        return WifiConnectResult.failure(
-          message:
-              'Failed to connect to $ssid. Check credentials or network state.',
-          error: WifiConnectError.unknown,
-        );
       }
+
+      return WifiConnectResult.failure(
+        message: 'Failed to connect to $ssid. Check credentials or network state.',
+        error: WifiConnectError.unknown,
+      );
     } on PlatformException catch (e) {
       WifiConnectError errorType = WifiConnectError.unknown;
       if (e.code == 'PERMISSION_DENIED') {
@@ -109,6 +103,8 @@ class WifiConnectorPlus {
         errorType = WifiConnectError.invalidCredentials;
       } else if (e.code == 'USER_CANCELLED') {
         errorType = WifiConnectError.userCancelled;
+      } else if (e.code == 'WIFI_ERROR') {
+        errorType = WifiConnectError.unknown;
       }
       return WifiConnectResult.failure(
         message: e.message ?? 'An error occurred: $e',
@@ -154,5 +150,17 @@ class WifiConnectorPlus {
   /// Returns `null` if not connected or if location permission is not granted.
   Future<String?> getCurrentSsid() async {
     return WifiConnectorPlusPlatform.instance.getCurrentSsid();
+  }
+
+  /// A stream that continuously emits the currently connected Wi-Fi SSID.
+  ///
+  /// - Emits a [String] with the SSID when connected to a Wi-Fi network.
+  /// - Emits `null` when disconnected or Wi-Fi is off.
+  /// - On iOS, uses [NWPathMonitor] to detect network path changes.
+  /// - On Android, uses [ConnectivityManager.NetworkCallback].
+  ///
+  /// Requires the `com.apple.developer.networking.wifi-info` entitlement on iOS.
+  Stream<String?> get ssidStream {
+    return WifiConnectorPlusPlatform.instance.ssidStream;
   }
 }

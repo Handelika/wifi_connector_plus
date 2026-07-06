@@ -1,3 +1,18 @@
+## 0.0.5
+
+* Added `ssidStream` API to listen for Wi-Fi SSID updates.
+  * On iOS, uses `NWPathMonitor` to detect path changes and fetch the active SSID.
+  * Added `wifi_connector_plus/ssid_stream` event channel.
+* Improved iOS connection request reliability:
+  * Verifies the actual active SSID (via polling for up to 10 seconds) after `NEHotspotConfigurationManager.apply()` succeeds, preventing false success states on wrong credentials or out-of-range networks.
+  * Returns `"ALREADY_CONNECTED"` if the target network is already active.
+  * Changed internal platform channel `connect` return type from `bool` to `dynamic` to support detailed status responses.
+* Optimized `example/lib/main.dart` UI:
+  * Streamlined UI layout with clear instructions.
+  * Replaced manual and QR connection logic with a unified helper.
+  * Subscribed to `ssidStream` to display the active SSID in real-time.
+* Added `com.apple.developer.networking.wifi-info` entitlement to iOS for retrieving SSIDs on iOS 14+.
+
 ## 0.0.4
 
 * Added `getCurrentSsid()` API to retrieve the currently connected Wi-Fi network's SSID on Android and iOS.

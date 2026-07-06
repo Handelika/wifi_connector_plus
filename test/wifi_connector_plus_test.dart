@@ -32,6 +32,10 @@ class MockWifiConnectorPlusPlatform
 
   @override
   Future<String?> getCurrentSsid() => Future.value(mockCurrentSsid);
+
+  @override
+  // TODO: implement ssidStream
+  Stream<String?> get ssidStream => throw UnimplementedError();
 }
 
 void main() {

@@ -4,7 +4,7 @@
 [![pub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 
-Current stable release: `0.0.4`
+Current stable release: `0.0.5`
 
 A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings, and connect directly to Wi-Fi networks.
 
@@ -14,6 +14,9 @@ A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings
 
 > [!IMPORTANT]
 > This plugin only supports **Android** and **iOS** platforms.
+
+> [!WARNING]
+> **Under Active Development:** This package is currently under active development. APIs, features, and platform-specific behaviors are subject to change and continuous refinement.
 
 ## Features
 
@@ -27,6 +30,14 @@ A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings
 ## Getting Started
 
 ### 1. Platform Setup & Permissions
+
+> [!IMPORTANT]
+> **Native Configuration Requirements:**
+> To use `wifi_connector_plus`, configuring platform-specific native settings is mandatory:
+> * **Android Customization:** You must add required permissions in `AndroidManifest.xml`. At runtime, location services and runtime permissions must be enabled.
+> * **iOS Customization:** You must add camera and location usage descriptions to `Info.plist`, and add both **Hotspot Configuration** and **Access Wi-Fi Information** capabilities in Xcode (editing `Runner.entitlements`).
+>
+> Follow the detailed platform setup guides below to customize your native configs.
 
 <details>
 <summary><b>Android Setup</b></summary>

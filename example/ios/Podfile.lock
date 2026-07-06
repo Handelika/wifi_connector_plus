@@ -34,7 +34,7 @@ SPEC CHECKSUMS:
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
-  wifi_connector_plus: 5181d77b4dc3afc7a3de1070edeb74780ad279c2
+  wifi_connector_plus: 897e0966182e2b8538cb9cd0aa7dad7f28cce3ff
 
 PODFILE CHECKSUM: ef9363b9c9ffa9aa5e7d1b752f359015073f3aaf
 

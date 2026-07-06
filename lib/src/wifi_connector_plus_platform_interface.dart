@@ -27,7 +27,7 @@ abstract class WifiConnectorPlusPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<bool> connect(
+  Future<dynamic> connect(
     String ssid,
     String? password,
     String securityType,
@@ -38,5 +38,11 @@ abstract class WifiConnectorPlusPlatform extends PlatformInterface {
 
   Future<String?> getCurrentSsid() {
     throw UnimplementedError('getCurrentSsid() has not been implemented.');
+  }
+
+  /// A stream that emits the currently connected Wi-Fi SSID whenever it changes.
+  /// Emits null when not connected to any Wi-Fi network.
+  Stream<String?> get ssidStream {
+    throw UnimplementedError('ssidStream has not been implemented.');
   }
 }

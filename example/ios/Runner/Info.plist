@@ -68,5 +68,10 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan QR codes for Wi-Fi connection.</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>tr</string>
+	</array>
 </dict>
 </plist>
