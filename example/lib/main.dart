@@ -436,7 +436,6 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
               ),
             ),
 
-
             // QR Raw String Card
             Card(
               color: const Color(0xFF1E293B),
@@ -634,8 +633,11 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
 class _QrScannerDialog extends StatefulWidget {
   final void Function(WifiCredentials credentials, String raw) onScanResult;
   final ValueChanged<String> onError;
-  final void Function(WifiCredentials credentials, {required VoidCallback onResume})
-      showConnectionOptionDialog;
+  final void Function(
+    WifiCredentials credentials, {
+    required VoidCallback onResume,
+  })
+  showConnectionOptionDialog;
   final bool isConnecting;
 
   const _QrScannerDialog({

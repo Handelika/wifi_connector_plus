@@ -9,7 +9,10 @@ class WifiQrScannerController extends ChangeNotifier {
   VoidCallback? _onResetProcessing;
 
   /// Internal method to bind the underlying [MobileScannerController].
-  void bind(MobileScannerController scannerController, {VoidCallback? onResetProcessing}) {
+  void bind(
+    MobileScannerController scannerController, {
+    VoidCallback? onResetProcessing,
+  }) {
     _scannerController = scannerController;
     _onResetProcessing = onResetProcessing;
   }
