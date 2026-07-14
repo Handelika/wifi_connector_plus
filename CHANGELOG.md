@@ -1,3 +1,12 @@
+## 0.0.6
+
+* Added `WifiQrScannerController` to programmatically control `WifiQrScannerView` from outside the widget.
+  * Added `start()` and `stop()` to manually control the camera scanning lifecycle.
+  * Added `resume()` and `resetProcessing()` to reset scanning states.
+  * Added `flash([bool? state])` to turn on/off or toggle the camera flash/torch.
+  * Added `switchCamera()` and `cameraFace` getter/setter to manage camera facing directions.
+  * Added `dispose()` to release controller resources.
+
 ## 0.0.5
 
 * Removed the `language` property from `WifiQrScannerView` and deleted the `WifiScannerLanguage` model, defaulting all warning and error messages to English.

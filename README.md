@@ -4,7 +4,7 @@
 [![pub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-blue.svg)](https://pub.dev/packages/wifi_connector_plus)
 
-Current stable release: `0.0.5`
+Current stable release: `0.0.6`
 
 A comprehensive Flutter plugin to scan Wi-Fi QR codes, parse connection settings, and connect directly to Wi-Fi networks.
 
@@ -189,7 +189,62 @@ WifiQrScannerView(
 )
 ```
 
-### 4. Checking and Requesting Location Permissions
+### 4. Controlling the Camera Programmatically
+
+You can manage the scanner (start, stop, resume, toggle flash, switch camera, etc.) programmatically using `WifiQrScannerController`.
+
+#### Creating and Binding the Controller
+
+Create a `WifiQrScannerController` in your stateful widget and pass it to `WifiQrScannerView`:
+
+```dart
+class MyScannerState extends State<MyScanner> {
+  final _controller = WifiQrScannerController();
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Always dispose the controller when done
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WifiQrScannerView(
+      controller: _controller,
+      onScanSuccess: (credentials, raw) {
+        // ...
+        return true; // Return true to temporarily pause scanning (lock)
+      },
+      onError: (err) => print(err),
+    );
+  }
+}
+```
+
+#### Controller APIs & Functions
+
+- **Start / Stop / Resume Scanning**:
+  - `await _controller.start()`: Starts or restarts the camera stream.
+  - `await _controller.stop()`: Stops/pauses the camera stream.
+  - `await _controller.resume()`: Resumes scanning and resets processing state to allow scanning another QR code.
+
+- **Flashlight (Torch)**:
+  - `await _controller.flash()`: Toggles the flashlight.
+  - `await _controller.flash(true)`: Turns the flashlight on.
+  - `await _controller.flash(false)`: Turns the flashlight off.
+
+- **Camera Direction (Camera Face)**:
+  - `await _controller.switchCamera()`: Toggles between the front and rear cameras.
+  - `_controller.cameraFace = CameraFacing.front`: Manually sets the camera facing direction.
+  - `CameraFacing? face = _controller.cameraFace`: Gets the current camera facing direction.
+
+- **Reset Processing**:
+  - `_controller.resetProcessing()`: Resets the processing state to allow scanning another QR code without restarting the camera.
+
+- **Disposing**:
+  - `_controller.dispose()`: Releases the resources held by the controller. Always call this in your widget's `dispose()` lifecycle method.
+
+### 5. Checking and Requesting Location Permissions
 
 On Android, location permissions are mandatory for Wi-Fi connection operations. You can utilize the built-in helper methods to check and request location permissions:
 

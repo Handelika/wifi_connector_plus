@@ -270,58 +270,41 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
 
   Future<void> _scanAndConnect() async {
     try {
-      final result = await showDialog<(WifiCredentials, String)?>(
+      await showDialog<void>(
         context: context,
-        builder: (context) => Dialog(
-          backgroundColor: const Color(0xFF1E293B),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppBar(
-                title: const Text('Scan QR Code'),
-                automaticallyImplyLeading: false,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 300,
-                child: WifiQrScannerView(
-                  onScanSuccess: (cred, raw) =>
-                      Navigator.pop(context, (cred, raw)),
-                  onError: (err) => Navigator.pop(context),
-                ),
-              ),
-            ],
-          ),
+        builder: (context) => _QrScannerDialog(
+          onScanResult: (credentials, raw) {
+            setState(() {
+              _qrController.text = raw;
+              if (_fillFieldsOnScan) {
+                _ssidController.text = credentials.ssid;
+                _passwordController.text = credentials.password ?? '';
+                _securityType = credentials.securityType;
+                _isHidden = credentials.isHidden;
+              }
+            });
+          },
+          onError: (err) {
+            setState(() => _statusMessage = 'Scanner error: $err');
+          },
+          showConnectionOptionDialog: (credentials, {required onResume}) {
+            _showConnectionOptionDialog(credentials, onResume: onResume);
+          },
+          isConnecting: _isConnecting,
         ),
       );
-
-      if (result != null) {
-        final (credentials, rawValue) = result;
-        setState(() => _qrController.text = rawValue);
-
-        if (_fillFieldsOnScan) {
-          setState(() {
-            _ssidController.text = credentials.ssid;
-            _passwordController.text = credentials.password ?? '';
-            _securityType = credentials.securityType;
-            _isHidden = credentials.isHidden;
-          });
-        }
-        _showConnectionOptionDialog(credentials);
-      }
     } catch (e) {
       setState(() => _statusMessage = 'Scanner failed: $e');
     }
   }
 
-  void _showConnectionOptionDialog(WifiCredentials credentials) {
+  void _showConnectionOptionDialog(
+    WifiCredentials credentials, {
+    required VoidCallback onResume,
+  }) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Wi-Fi QR Scanned'),
         content: Text(
@@ -330,18 +313,22 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
         actions: [
           TextButton(
             child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+              onResume();
+            },
           ),
           ElevatedButton(
             child: const Text('Connect Now'),
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              _connect(
+              await _connect(
                 ssid: credentials.ssid,
                 password: credentials.password,
                 securityType: credentials.securityType,
                 isHidden: credentials.isHidden,
               );
+              onResume();
             },
           ),
         ],
@@ -448,7 +435,7 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
                 onPressed: !_isConnecting ? _requestAndScanQr : null,
               ),
             ),
-            const SizedBox(height: 16),
+
 
             // QR Raw String Card
             Card(
@@ -639,6 +626,127 @@ class _WifiConnectorHomePageState extends State<WifiConnectorHomePage> {
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
         ],
+      ),
+    );
+  }
+}
+
+class _QrScannerDialog extends StatefulWidget {
+  final void Function(WifiCredentials credentials, String raw) onScanResult;
+  final ValueChanged<String> onError;
+  final void Function(WifiCredentials credentials, {required VoidCallback onResume})
+      showConnectionOptionDialog;
+  final bool isConnecting;
+
+  const _QrScannerDialog({
+    required this.onScanResult,
+    required this.onError,
+    required this.showConnectionOptionDialog,
+    required this.isConnecting,
+  });
+
+  @override
+  State<_QrScannerDialog> createState() => _QrScannerDialogState();
+}
+
+class _QrScannerDialogState extends State<_QrScannerDialog> {
+  final _controller = WifiQrScannerController();
+  bool _autoResumeScan = true;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF1E293B),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppBar(
+              title: const Text('Scan QR Code'),
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 250,
+                child: WifiQrScannerView(
+                  controller: _controller,
+                  onScanSuccess: (credentials, raw) {
+                    if (widget.isConnecting) return true;
+                    widget.onScanResult(credentials, raw);
+                    widget.showConnectionOptionDialog(
+                      credentials,
+                      onResume: () {
+                        if (mounted && _autoResumeScan) {
+                          _controller.resume();
+                        }
+                      },
+                    );
+                    return true; // Keep scanning locked while option dialog is open
+                  },
+                  onError: widget.onError,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.play_arrow),
+                  tooltip: 'Start Scanner',
+                  onPressed: () => _controller.start(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.stop),
+                  tooltip: 'Stop Scanner',
+                  onPressed: () => _controller.stop(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Resume/Reset Scanner',
+                  onPressed: () => _controller.resume(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.flash_on),
+                  tooltip: 'Toggle Flash',
+                  onPressed: () => _controller.flash(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.flip_camera_ios),
+                  tooltip: 'Switch Camera',
+                  onPressed: () => _controller.switchCamera(),
+                ),
+              ],
+            ),
+            const Divider(),
+            SwitchListTile(
+              title: const Text(
+                'Auto-resume scanning (2s delay)',
+                style: TextStyle(fontSize: 13),
+              ),
+              value: _autoResumeScan,
+              onChanged: (val) => setState(() => _autoResumeScan = val),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/wifi_credentials.dart';
 import '../wifi_qr_parser.dart';
+import 'wifi_qr_scanner_controller.dart';
 
 /// A self-contained widget that handles camera permissions, opens the camera stream,
 /// scans for a Wi-Fi QR code, and parses it into [WifiCredentials].
@@ -42,6 +43,9 @@ class WifiQrScannerView extends StatefulWidget {
   /// If null or empty, the overlay text container is hidden.
   final String? instructionText;
 
+  /// Optional controller to manage camera operations from outside the widget.
+  final WifiQrScannerController? controller;
+
   const WifiQrScannerView({
     super.key,
     required this.onScanSuccess,
@@ -50,6 +54,7 @@ class WifiQrScannerView extends StatefulWidget {
     this.permissionDeniedPlaceholder,
     this.cameraOption = CameraOption.show,
     this.instructionText,
+    this.controller,
   });
 
   @override
@@ -59,19 +64,50 @@ class WifiQrScannerView extends StatefulWidget {
 class _WifiQrScannerViewState extends State<WifiQrScannerView> {
   bool _hasPermission = false;
   bool _isChecking = true;
-  final MobileScannerController _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.normal,
-    facing: CameraFacing.back,
-  );
+  bool _isProcessing = false;
+  late final MobileScannerController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.normal,
+      facing: CameraFacing.back,
+    );
+    widget.controller?.bind(
+      _controller,
+      onResetProcessing: () {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      },
+    );
     _checkPermission();
   }
 
   @override
+  void didUpdateWidget(WifiQrScannerView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.unbind();
+      widget.controller?.bind(
+        _controller,
+        onResetProcessing: () {
+          if (mounted) {
+            setState(() {
+              _isProcessing = false;
+            });
+          }
+        },
+      );
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?.unbind();
     _controller.dispose();
     super.dispose();
   }
@@ -198,12 +234,12 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
               MobileScanner(
                 controller: _controller,
                 onDetect: (capture) {
+                  if (_isProcessing) return;
                   try {
                     final List<Barcode> barcodes = capture.barcodes;
                     if (barcodes.isNotEmpty) {
                       final barcode = barcodes.first;
                       WifiCredentials? credentials;
-
                       // 1. Try accessing structured wifi properties parsed by mobile_scanner
                       if (barcode.type == BarcodeType.wifi &&
                           barcode.wifi != null) {
@@ -246,20 +282,31 @@ class _WifiQrScannerViewState extends State<WifiQrScannerView> {
                       }
 
                       if (credentials != null) {
-                        _controller.stop();
+                        setState(() {
+                          _isProcessing = true;
+                        });
                         final result = widget.onScanSuccess(
                           credentials,
                           barcode.rawValue ?? '',
                         );
                         if (result is Future) {
                           result.then((res) {
-                            if (mounted && res == false) {
-                              _controller.start();
+                            if (mounted && res != true) {
+                              setState(() {
+                                _isProcessing = false;
+                              });
                             }
                           });
-                        } else if (result == false) {
-                          if (mounted) {
-                            _controller.start();
+                        } else {
+                          if (result != true) {
+                            // Automatically resume after a short delay to avoid double scanning
+                            Future.delayed(const Duration(seconds: 2), () {
+                              if (mounted) {
+                                setState(() {
+                                  _isProcessing = false;
+                                });
+                              }
+                            });
                           }
                         }
                       } else {
